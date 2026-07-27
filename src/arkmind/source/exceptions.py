@@ -13,3 +13,7 @@ class InvalidStatusError(Exception):
 
 class ChecksumMismatchError(Exception):
     """Raised when a recomputed checksum does not match the stored value."""
+
+
+class SourceReadError(Exception):
+    """Raised when no reader (PyMuPDF nor pdfplumber) can read the source."""
