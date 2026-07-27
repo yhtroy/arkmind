@@ -39,6 +39,14 @@ Git 首先是历史，不是 Release 工具。不能因为没 Freeze 就丢掉�
 
 M1 的成功标准不是文档越来越多，而是**文档之间开始互相引用，而不是重复解释**。一个原则只在一处定义（其 canonical home），其他文档直接引用、不再解释——否则半年后文档会开始漂移。五份 Canon 职责边界见 [README](README.md)。
 
+### Architecture Budget（架构预算）
+
+架构也有预算，不是越漂亮越好。**每个 Milestone 最多 3 个 Architecture Decision**（Layer / ADR / Canon / Principle / Philosophy 级别）；超出的一律进入 **RFC Backlog**，不再修改 Architecture。
+
+区分两个阶段：**架构设计（Architecture）** 与 **文档优化（Optimization）** 是不同阶段——一旦越过设计边界进入优化，就该收手。当 Chief Architect 宣布某 Milestone 的 Architecture 进入 Freeze，后续只接受**致命缺陷**（判据是「继续下去项目会死」，不是「还能更优」）级别的修改；其余一律 `Rejected → RFC Backlog`。
+
+> **稳定，比完美重要。** 成熟架构师最重要的能力不是一直提出更好的设计，而是知道什么时候说「够好了，开始写代码」。
+
 ---
 
 ## M1 — Source → Approved Knowledge

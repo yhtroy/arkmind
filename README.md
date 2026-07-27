@@ -88,4 +88,5 @@ arkmind/
 
 ## 当前状态
 
-M0：Review 意见已全部落实，等待 Architecture Freeze 宣布后 commit 并打 tag `v0.1.0-m0`。下一步见 [ROADMAP.md](ROADMAP.md) 的 M1。
+- **M0**：已 Freeze 并打 tag `v0.1.0-m0`（五层架构 / 五份 ADR / 地基文档冻结）。
+- **M1 Architecture**：进入 **Freeze 候选**。冻结集合：五层架构、Source → Knowledge、Provenance、Approved 流程、Taxonomy、Review Checklist、Gold Standard、Coverage / Fidelity、ADR 铁律（0001–0005）。后续任何新增 ADR / Canon / Layer / Principle / Philosophy 一律进入 RFC Backlog，除非发现**致命缺陷**（见 [ROADMAP.md](ROADMAP.md)「Architecture Budget」）。架构 Sign-off 后开始 M1.1（Human Gold Standard）。
