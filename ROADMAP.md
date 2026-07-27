@@ -7,36 +7,91 @@
 ## Milestone Gate（每个里程碑的收尾流程）
 
 ```
-Develop → Review → Refactor → Freeze → Tag → Next
+Develop → Review → Refactor → Architecture Sign-off → Freeze → Commit → Tag → Next
 ```
 
-- Freeze 之前不 commit 里程碑成果，避免第一天就开始改地基。
-- Freeze 由 Chief Architect 宣布，Tag 命名：`v0.x.0-mN`。
-- M0（文档阶段）同样适用：Draft → Review → Architecture Freeze → Commit。
+- Sign-off 与 Freeze 由 Chief Architect 宣布。没有 Sign-off 就没有 Freeze。
+
+### 两种 Commit（修正旧纪律）
+
+Git 首先是历史，不是 Release 工具。不能因为没 Freeze 就丢掉演进过程：
+
+| 类型 | 对象 | 能 Commit | 能 Tag |
+| --- | --- | --- | --- |
+| Architecture Freeze | VISION / ADR / ARCHITECTURE / DATA_MODEL 等地基文档 | ✅（Freeze 后） | ✅ `v0.x.0-mN`（附注标签） |
+| Working Draft | Canon Draft、过程产物、开发中代码 | ✅（随时） | ❌ 绝不打 Tag |
+
+- **Tag 只属于 Freeze。** Working Draft 可以随时 commit（例：`M1: Canon draft (working)`），但绝不打 Tag。
 
 ---
 
-## M1 — 一本书变成 Knowledge
+## M1 — Source → Verified Knowledge
 
-**做什么**
+> **M1 首要原则（ADR 候选，未编号）：如果 Human 都无法稳定判断一条知识是否应该进入 Knowledge Layer，那么 AI 也不允许决定。**
 
-- PDF 入库（source / document / fragment / knowledge 四张表跑通）
-- CLI：`ingest` 一本书 → 解析 → 切分 → 提取知识候选 → 作者逐条 Approve（ADR-0004）
+M1 的目标不是「让 AI 理解一本书」，而是「让系统准确保存一本书中可验证的知识事实」。Verified = **Human 验证**，不是 AI 验证。
+
+### 输入不是 PDF，是 Source
+
+M1 第一件事不是写 PDF Parser，而是定义 **Source 抽象**（`SourceProvider` 接口，见 [ARCHITECTURE.md](ARCHITECTURE.md)）。PDF 只是第一个实现（`PdfSourceProvider`）；图片、Markdown、EPUB、网页……以后都是同一接口的新实现。
+
+### 范围：不是一本书，是十页
+
+```
+Book → Chapter → 10 Pages → Gold Standard
+```
+
+在 10 页上把 Knowledge 定义磨对，返工成本是几分钟；在一本 200 页上磨错了，返工成本是两百页。
+
+### M1.1 — 建立 Human Gold Standard（先行，无代码）
+
+- 三方（作者 / Chief Architect / Qoder）人工对同一 10 页提取知识，建立金标准。
+- 不用 AI、不用 Prompt、不用 Agent。产出是定稿的 [docs/canon/knowledge_rules.md](docs/canon/knowledge_rules.md) 与 [knowledge_examples.md](docs/canon/knowledge_examples.md)（v1.0）。
+- 完成标准：三方对这 10 页的提取结果能稳定收敛；Canon 定稿。
+
+### M1.2 — AI 学习 Gold Standard
+
+- AI 在同样 10 页上产出候选，对照 M1.1 金标准计算 **Knowledge Fidelity**。
+- 顺序不能反：先有人的金标准，再让 AI 学。
 
 **不做什么**
 
+- ❌ Knowledge Extraction 自动化（M1.1 完成前不写任何提取代码）
 - ❌ 写作、文章生成（M1 根本不关心知乎和小红书）
-- ❌ Agent
-- ❌ Web 前端
-- ❌ 第二种输入格式
+- ❌ Agent / Web 前端
+- ❌ 一次处理整本书
+
+### M1 只有三个 Deliverable
+
+不是五个，不是十个。三个。
+
+1. **Source Interface** — 一个 `SourceProvider`，一个 PDF 实现，结束。
+2. **Gold Standard** — 10 页的 Knowledge Candidate 经 Human Approve，得到金标准。
+3. **Knowledge Fidelity** — 能够计算（现在只要定义，计算方式以后再设计）。
+
+> Extraction / AI / Agent / Prompt 都**不是** Deliverable。
+
+### M1 第一个 PR 不是代码
+
+第一个 PR 不是 Python / Docker / API，而是手工跑通这条链（Excel / Markdown / JSON 都行）：
+
+```
+Book → Page → Fragment → Knowledge Candidate → Human Review → Approved Knowledge
+```
+
+因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。
+
+### 工程格言
+
+> **Slow is smooth. Smooth is fast.** 宁愿第一周只有 10 页，但十年后这 10 页仍不用返工。
 
 **完成标准（Success Criteria）**
 
-> **一本书可以 100% 恢复：Source → Knowledge。**
+> **M1 唯一 KPI 是 Knowledge Fidelity（知识保真度），不是提取数量，不是 Accuracy/Recall/Precision。**
 >
-> 具体地：一本得到 PDF 完整进入数据库，原文在 fragment 层无损可查；作者 Approve 过一批 knowledge，每一条都能回链到原文页码。
+> 定义与度量方式见 [docs/canon/knowledge_rules.md](docs/canon/knowledge_rules.md)。取向：宁可漏提，不可失真。
 >
-> 衡量的是「事实 → 知识」的保真度，不是「知识 → 文章」的产出。Knowledge 失败，后面全部失败。
+> 达标：在那 10 页上，AI 产出的候选对照 Gold Standard 的 Knowledge Fidelity 达到三方认可的阈值。
 
 ---
 

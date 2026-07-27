@@ -16,7 +16,17 @@ Feedback    →  作者与读者的反馈，回流修正 Knowledge 与 Reasoning
 
 - 职责：接收原始输入，保留原件，解析出可用文本。
 - 边界：只做「拿进来、拆开」，不做任何理解和总结。
-- 今天的实现范围：PDF（PyMuPDF + pdfplumber，必要时 PaddleOCR）。
+- **输入不是 PDF，是 Source。** 本层对上暴露统一抽象 `SourceProvider`，PDF 只是第一个实现：
+
+```python
+class SourceProvider:
+    def load(self) -> SourceDocument:
+        ...
+
+# PdfSourceProvider / ImageSourceProvider / MarkdownSourceProvider / WebSourceProvider ...
+```
+
+- 新增一种输入（图片、Markdown、EPUB、网页、RSS、论文、字幕……）= 新增一个 Provider 实现，不改下游任何一层。但遵守 YAGNI（ADR-0002）：现在只实现 `PdfSourceProvider`。
 
 ### 2. Knowledge
 
