@@ -41,11 +41,19 @@ M1 的成功标准不是文档越来越多，而是**文档之间开始互相引
 
 ### Architecture Budget（架构预算）
 
-架构也有预算，不是越漂亮越好。**每个 Milestone 最多 3 个 Architecture Decision**（Layer / ADR / Canon / Principle / Philosophy 级别）；超出的一律进入 **RFC Backlog**，不再修改 Architecture。
+架构也有预算，不是越漂亮越好。**每个 Milestone 最多 3 个 Architecture Decision**（Layer / ADR / Canon / Principle / Philosophy 级别）；超出的一律 `Rejected`（作为 RFC 提案交 Owner 裁决），不再修改 Architecture。**不预建 RFC Backlog 系统**——等第一条真正需要沉淀的 RFC 出现再建（YAGNI）。
 
-区分两个阶段：**架构设计（Architecture）** 与 **文档优化（Optimization）** 是不同阶段——一旦越过设计边界进入优化，就该收手。当 Chief Architect 宣布某 Milestone 的 Architecture 进入 Freeze，后续只接受**致命缺陷**（判据是「继续下去项目会死」，不是「还能更优」）级别的修改；其余一律 `Rejected → RFC Backlog`。
+区分两个阶段：**架构设计（Architecture）** 与 **文档优化（Optimization）** 是不同阶段——一旦越过设计边界进入优化，就该收手。当 Chief Architect 宣布某 Milestone 的 Architecture 进入 Freeze，后续只接受**致命缺陷**（判据是「继续下去项目会死」，不是「还能更优」）级别的修改；其余一律 `Rejected`（作为 RFC 提案）。
 
 > **稳定，比完美重要。** 成熟架构师最重要的能力不是一直提出更好的设计，而是知道什么时候说「够好了，开始写代码」。
+
+### Architecture Ownership（单一 Owner，防 Design by Committee）
+
+Architecture 只有一个 Owner = Chief Architect。其余所有人（Product Owner、Qoder / Production Engineer）只能提 RFC（提案），不能直接改 Architecture；由 Owner Approve 或 Reject。好的架构大多毁于委员会设计，这条规则专防它。
+
+### Architecture Freeze ≠ Milestone Release
+
+Freeze 不等于 Release。架构冻结后先是 `Frozen (Pending Validation)`；经真实数据（第一批 Gold Sample）验证通过才 `Architecture Validated`，此时才打 Release Tag（`v0.x.0-mN`）。所以 Baseline 阶段只 commit（`M1: Architecture Baseline`）、不打 Tag——避免验证发现问题后删 tag / 重 tag。
 
 ---
 
@@ -99,10 +107,6 @@ Book → Chapter → 代表性 10 Fragments → Gold Standard
 | Cross Reference | 1 |
 | Unknown | 不主动追求，出现就记录 |
 
-#### Sampling Plan（M1.1 新增交付物，一页纸）
-
-每份 Gold Standard 都必须随带一份 Sampling Plan，回答一句话：**这批 Gold Standard 为什么被认为具有代表性**。没有 Sampling Plan，就不知道“为什么抽的是这些”。（以后甚至可能有 `SamplingProvider`——先定接口，再讨论实现。）
-
 ### M1.1 — 建立 Human Gold Standard（先行，无代码）
 
 - 三方（作者 / Chief Architect / Qoder）人工对**同一批代表性抽取的 10 个 Fragment**（见上方抽样策略）提取知识，建立金标准。
@@ -114,11 +118,6 @@ Book → Chapter → 代表性 10 Fragments → Gold Standard
 
 - AI 在**同一批 10 个 Fragment** 上产出候选，对照 M1.1 金标准同时计算 **Fidelity（保真度）与 Coverage（覆盖度）**。
 - 顺序不能反：先有人的金标准，再让 AI 学。
-
-#### Gold Standard 永远不是 Truth，只是 Best Current Standard（BCS）
-
-Gold Standard 不是真理，只是**当下最佳标准**。半年后可能发现 Taxonomy 有缺陷、Checklist 有漏洞、某条 Gold Sample 判错——不推翻，而是 **Version**（v1.0 → v1.1 → v2.0），每次修改必须说明为什么（与 SQLite 文档 Version 同一哲学）。
-- **规划（M1.2，尚未创建）**：一页纸的极小 Canon `gold_standard_versioning.md`，只回答“Gold Standard 如何升级”。现在先记下 BCS 原则（否则到时历史已丢），文档本体留到 M1.2。
 
 **不做什么**
 
@@ -147,7 +146,7 @@ M1.1 第一版交付的不是 JSON、不是数据库，而是一张人工校准�
 不是“处理前十页”，而是：
 
 1. 锁定 SQLite `3.46.x` 对应文档。
-2. 从 `CREATE TABLE` 章节按 Coverage Design **代表性抽取 10 个 Fragment**（覆盖不同类型，不是连续页），并写下 Sampling Plan。
+2. 从 `CREATE TABLE` 章节按 Coverage Design **代表性抽取 10 个 Fragment**（覆盖不同类型，不是连续页）。
 3. 建立第一批 **Gold Samples**。
 4. 用 [review_guidelines.md](docs/canon/review_guidelines.md) 做人工评审（Checklist 五问，不凭感觉）。
 5. 完成后再回头统计：`unknown` 出现多少？`concept` 出现多少？哪些类型最易产生分歧？
@@ -159,7 +158,7 @@ M1.1 第一版交付的不是 JSON、不是数据库，而是一张人工校准�
 不是五个，不是十个。三个。
 
 1. **Source Interface** — 一个 `SourceProvider`，一个 PDF 实现，结束。Source 先登记（`sources/<id>/source.yaml`）再解析，暂不用 `data/`。
-2. **Gold Standard** — 代表性抽取的 10 个 Fragment 经 Human Approve，打包为：Sampling Plan（为何代表）+ Gold Samples + Gold Review（status：Observed → Approved）。
+2. **Gold Standard** — 代表性抽取的 10 个 Fragment 经 Human Approve，打包为：Gold Samples + Gold Review（status：Observed → Approved）。
 3. **Knowledge Fidelity + Coverage** — 两个指标能够计算（现在只要定义，计算方式以后再设计）。
 
 > Extraction / AI / Agent / Prompt 都**不是** Deliverable。
@@ -227,4 +226,14 @@ Book → Page → Fragment → Knowledge Candidate → Human Review → Approved
 
 ## M3 之后
 
-不排。到时候根据 M1–M3 的真实反馈再定。任何"顺便把 XX 也做了"的提议，先读 [ADR-0002](ADR/ADR-0002-yagni.md)。
+不排。到时候根据 M1–M3 的真实反馈再定。任何“顺便把 XX 也做了”的提议，先读 [ADR-0002](ADR/ADR-0002-yagni.md)。
+
+---
+
+## 附录：Future Notes（非阻塞设计备注，不属 M1 验收）
+
+以下是过程中沉淀的设计经验。它们**存在，但不是 M1 的 Acceptance Criteria，也不是 Deliverable，不参与当前执行**；将来真有需要时再从这里提取为正式 RFC。
+
+- **Sampling Plan**：一份说明「这批 Gold Standard 为什么被认为具有代表性」的记录，以后甚至可能有 `SamplingProvider`（先定接口再谈实现）。M1.1 不强制产出。
+- **Gold Standard 是 BCS（Best Current Standard）而非 Truth**：发现缺陷后按 Version（v1.0→v1.1→v2.0）迭代、每次说明为什么，而非推翻；`gold_standard_versioning.md` 等真需要时再写。
+- **Every new field must pay rent**：新增字段前自问「解决什么真实问题 / 没有它会怎样 / 现有字段能否表达」。作为经验保留，不作为 M1 的强制门槛。

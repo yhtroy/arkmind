@@ -11,7 +11,8 @@
 5. 任何数据进入 knowledge 表之前，必须经作者 Approve（ADR-0004）。
 6. 全局数据只有三种状态：`Observed` → `Approved` → `Derived`（ADR-0005）。本文件只建模 Observed 与 Approved；Derived 属于 Reasoning 层。
 7. **克制演化：不为了让数据符合模型而修改数据；只在真实证据持续表明需要时才演化模型。** 新类型先进 Type Discovery 统计（见 [docs/canon/knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)），证据足够 + Architecture Review 后才改 `kind`。
-8. **Every new field must pay rent（每个新字段都得交房租）。** 新增任何字段前必须回答三问：① 它解决什么真实问题？② 如果没有它会发生什么？③ 有没有现有字段已能表达？答不上就不加（包括 Architect 自己提的字段）。
+
+> 另有一条非阻塞经验 **Every new field must pay rent**（新增字段前自问：解决什么真实问题 / 没有它会怎样 / 现有字段能否表达），作为参考而非强制门槛，见 [ROADMAP 附录 Future Notes](ROADMAP.md)。
 
 ## 存储选型
 

@@ -49,7 +49,7 @@ Gold Standard 不只是一批被批准的样本，它有两部分：
 
 > 因为以后 AI 学的不是**结果**（这条是 Definition），而是**判定过程**（凭什么判成 Definition）。没有 Gold Review 的 Gold Samples 只是答案，没有解题步骤——训练不出判断力。
 
-> **Gold Standard 永远不是 Truth，只是 Best Current Standard（BCS）。** 它可以被修订，但只能通过 Version（v1.0 → v1.1 → v2.0）而非推翻，每次修订必须说明为什么（BCS 原则与升级机制见 [ROADMAP.md](../../ROADMAP.md) M1.2）。
+> **Gold Standard 永远不是 Truth，只是 Best Current Standard（BCS）。** 它可以被修订，但只能通过 Version（v1.0 → v1.1 → v2.0）而非推翻，每次修订必须说明为什么。（BCS 目前是非阻塞设计备注，见 [ROADMAP.md](../../ROADMAP.md) 附录 Future Notes。）
 
 ---
 
