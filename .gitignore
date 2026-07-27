@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 环境与密钥
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# 数据文件（原件另行备份，不进 git）
+data/
+*.pdf
