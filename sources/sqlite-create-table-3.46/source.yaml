@@ -1,34 +1,12 @@
 # Dataset-0001 — 第一个真实数据集（Source 登记）
-# ArkMind 的第一件工程产物：先登记 Source，再抽取 Fragment，最后建立 Gold Samples。
-# 顺序不能反：Dataset-0001 建好，Gold Sample 才有地方存在。
-# 本文件只登记来源与完整性信息（Metadata / License / Version / Checksum），不含解析结果。
-
+# RFC-0001 v3 schema：字段与 SourceMetadata 一一对应，extra=forbid，禁止多余字段。
+# 只登记来源与完整性信息，不含解析结果。checksum/captured_at 由 capture() 回填。
 id: sqlite-create-table-3.46
 title: SQLite Documentation — CREATE TABLE
-type: documentation           # SourceProvider 类型：文档（第一个实现将是 PdfSourceProvider / 文本）
-publisher: SQLite (sqlite.org)
-
-# 来源定位
-origin:
-  url: https://sqlite.org/lang_createtable.html
-  scope: "CREATE TABLE 章节（全章）"
-
-# 版本锁定：金标准需要一个冻结的参系，M1 完成之前绝不升级
+origin: https://sqlite.org/lang_createtable.html
 version: sqlite-3.46.x
-
-# 许可证：SQLite 官方文档为公有领域（Public Domain）
 license: public-domain
-
-# 完整性：抓取正式冻结副本后填入，用于以后任何 Parser/LLM/OCR 的可核验对比
-checksum:
-  algo: sha256
-  value: null                 # PENDING —— 抓取 3.46.x 冻结副本后计算并锁定
-  captured_at: null           # PENDING —— 冻结副本获取时间
-
-# 登记状态（数据生命周期 ADR-0005：Observed → Approved → Derived）
-status: registered            # registered → captured(冻结副本入库+checksum) → sampled(抽取 Fragment)
-
-notes: |
-  下一步（Production Engineer）：获取 sqlite-3.46.x 的 CREATE TABLE 冻结副本，
-  存为本目录下的 raw 源文件，计算 sha256 回填 checksum.value 与 captured_at，
-  status 置为 captured。然后才进入 M1.1 第二步（代表性抽取 10 个 Fragment）。
+checksum: null
+status: registered
+captured_at: null
+verified_at: null
