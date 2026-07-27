@@ -94,3 +94,7 @@ Cross Reference（如 SQLite 文档里"参见 CREATE INDEX")本身**不是一条
 不选 A（收敛并入 evidence），不选 B（现在扩展枚举），选 **C：现在不决定，让真实数据决定**。
 
 当前 `DATA_MODEL.kind` 枚举：`concept / definition / evidence / data / quote / unknown`（`unknown` 为过渡态）。`Constraint / Requirement / Warning` 等类型**暂不进入 kind**，先在校准表里以本分类学的类型名标注、并在需要落库时记为 `unknown`，交给 Type Discovery 统计。何时扩展 `kind`，由证据 + Architecture Review 决定。
+
+### `concept` 同样走 Type Discovery
+
+`concept` 未出现在上方分类学表中（表里是 Definition/Fact/…），但**现在不删**——这是 Type Discovery，不是拍脑袋。先让它存在；M1.1 结束后看真实频次：一次都没出现→删掉，大量出现→保留。**证据决定模型。**

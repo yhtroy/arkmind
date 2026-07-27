@@ -11,6 +11,7 @@
 5. 任何数据进入 knowledge 表之前，必须经作者 Approve（ADR-0004）。
 6. 全局数据只有三种状态：`Observed` → `Approved` → `Derived`（ADR-0005）。本文件只建模 Observed 与 Approved；Derived 属于 Reasoning 层。
 7. **克制演化：不为了让数据符合模型而修改数据；只在真实证据持续表明需要时才演化模型。** 新类型先进 Type Discovery 统计（见 [docs/canon/knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)），证据足够 + Architecture Review 后才改 `kind`。
+8. **Every new field must pay rent（每个新字段都得交房租）。** 新增任何字段前必须回答三问：① 它解决什么真实问题？② 如果没有它会发生什么？③ 有没有现有字段已能表达？答不上就不加（包括 Architect 自己提的字段）。
 
 ## 存储选型
 
@@ -73,7 +74,7 @@ source ──< document ──< fragment ──< knowledge
 | provenance | 结构化出处（抽象）。一条知识可跨多个 fragment、跨多个 document / source / version；内部是一组引用，每个各自解析到完整链（见 [docs/canon/provenance.md](docs/canon/provenance.md)）。**不得用 `fragment_ids` 字段绑死单一实现。** |
 | extractor | 这条知识是谁提取的：`human` / `ocr-v1` / `pdf-parser-v2` ……。**可追责（Traceability）**：某个 Extractor 事后发现 Bug 时，能定位受影响的知识。 |
 | statement | 事实的规范化表述（忠于原文，不加观点、不做总结） |
-| kind | `concept` / `definition` / `evidence` / `data` / `quote` / `unknown`（分类学见 [docs/canon/knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)；`unknown` 为**过渡态**，不进长期分类，枚举扩展由 Type Discovery 决定） |
+| kind | `concept` / `definition` / `evidence` / `data` / `quote` / `unknown`（分类学见 [docs/canon/knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)；`unknown` 为**过渡态**，不进长期分类，枚举扩展由 Type Discovery 决定；`concept` 未在分类学表中，待 M1.1 统计验证——一次未出现则删除，大量出现则保留） |
 | status | `observed` / `approved`（作者 Approve 后才算资产，见 ADR-0004 / ADR-0005；不使用 candidate/draft） |
 | embedding | vector |
 | created_at / approved_at | |

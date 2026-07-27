@@ -109,7 +109,7 @@ Coverage = captured gold facts / total gold facts
 
 ### M1 的考核方式
 
-M1.2 中，AI 在同样 10 页上产出候选，对照 M1.1 的 Human Gold Standard 同时计算 Fidelity 与 Coverage。提取数量本身不是 KPI。
+M1.2 中，AI 在同一批 10 个 Fragment 上产出候选，对照 M1.1 的 Human Gold Standard 同时计算 Fidelity 与 Coverage。提取数量本身不是 KPI。
 
 ---
 

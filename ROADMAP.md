@@ -47,13 +47,13 @@ M1 的目标不是「让 AI 理解一本书」，而是「让系统准确保存�
 
 M1 第一件事不是写 PDF Parser，而是定义 **Source 抽象**（`SourceProvider` 接口，见 [ARCHITECTURE.md](ARCHITECTURE.md)）。PDF 只是第一个实现（`PdfSourceProvider`）；图片、Markdown、EPUB、网页……以后都是同一接口的新实现。
 
-### 范围：不是一本书，是十页
+### 范围：不是一本书，是随机抽取的十个 Fragment
 
 ```
-Book → Chapter → 10 Pages → Gold Standard
+Book → Chapter → 随机 10 Fragments → Gold Standard
 ```
 
-在 10 页上把 Knowledge 定义磨对，返工成本是几分钟；在一本 200 页上磨错了，返工成本是两百页。
+在 10 个 Fragment 上把 Knowledge 定义磨对，返工成本是几分钟；在一本 200 页上磨错了，返工成本是两百页。
 
 ### 第一份 Gold Standard（已拍板）：SQLite 官方文档 CREATE TABLE 章节
 
@@ -67,16 +67,22 @@ Book → Chapter → 10 Pages → Gold Standard
 
 > 因为我们现在训练的是**知识分类器**，不是读书助手；验证的是 Knowledge Grammar 能不能覆盖真实世界，不是 AI。
 
+### 抽样策略：随机抽 10 个 Fragment（不是连续 10 页）
+
+**绝不指定“CREATE TABLE 开头前 10 页”**——指定连续页会人为挑个“好做”的样本（可能全是 Definition / 全是 SQL），会**污染 Gold Standard 并误导 Taxonomy**。
+
+改为：从 SQLite `CREATE TABLE` 章节**随机抽取 10 个 Fragment**。单位是 **Fragment 而非 Page**——Fragment 才是 Knowledge 的最小单位。随机抽样会自然撑开类型分布（Definition / SQL Example / Warning / Cross Reference ……），比连续十页更能暴露 Grammar 的问题。我们测的是 Taxonomy，不是 OCR。
+
 ### M1.1 — 建立 Human Gold Standard（先行，无代码）
 
-- 三方（作者 / Chief Architect / Qoder）人工对同一 10 页提取知识，建立金标准。
-- 不用 AI、不用 Prompt、不用 Agent。产出是四份 Canon 定稿（v1.0）：[knowledge_rules.md](docs/canon/knowledge_rules.md)、[knowledge_examples.md](docs/canon/knowledge_examples.md)、[knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)、[provenance.md](docs/canon/provenance.md)。
-- **M1.1 目标不是提取完所有知识，而是验证 Knowledge Grammar 能不能覆盖真实世界。** 如果 SQLite 文档里出现一种我们无法分类的知识，先记为 `unknown`（不是失败，是 Grammar 不足的信号，见 Type Discovery）——改分类学，不硬塞。
-- 完成标准：三方对这 10 页的提取结果能稳定收敛；Canon 定稿。
+- 三方（作者 / Chief Architect / Qoder）人工对**同一批随机抽取的 10 个 Fragment** 提取知识，建立金标准。
+- 不用 AI、不用 Prompt、不用 Agent。产出是五份 Canon 定稿（v1.0）：[knowledge_rules.md](docs/canon/knowledge_rules.md)、[knowledge_examples.md](docs/canon/knowledge_examples.md)、[knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)、[provenance.md](docs/canon/provenance.md)、[review_guidelines.md](docs/canon/review_guidelines.md)。
+- **M1.1 目标不是提取完所有知识，而是验证 Knowledge Grammar 能不能覆盖真实世界。** 如果出现一种无法分类的知识，先记为 `unknown`（不是失败，是 Grammar 不足的信号，见 Type Discovery）——改分类学，不硬塞。
+- 完成标准：三方对这 10 个 Fragment 的提取结果能稳定收敛；Canon 定稿。
 
 ### M1.2 — AI 学习 Gold Standard
 
-- AI 在同样 10 页上产出候选，对照 M1.1 金标准同时计算 **Fidelity（保真度）与 Coverage（覆盖度）**。
+- AI 在**同一批 10 个 Fragment** 上产出候选，对照 M1.1 金标准同时计算 **Fidelity（保真度）与 Coverage（覆盖度）**。
 - 顺序不能反：先有人的金标准，再让 AI 学。
 
 **不做什么**
@@ -86,22 +92,39 @@ Book → Chapter → 10 Pages → Gold Standard
 - ❌ Agent / Web 前端
 - ❌ 一次处理整本书
 
-### M1.1 最终交付物：一张人工校准表（不是代码/数据库/JSON）
+### M1.1 最终交付物：人工校准表（Gold Samples + Gold Review）
 
 M1.1 第一版交付的不是 JSON、不是数据库，而是一张人工校准表——**这张表就是 Gold Standard**。以后任何 Parser / LLM / OCR 都必须和这张表对比。
 
-| Fragment | 初步类型 | Provenance | 是否 Approved | 备注 |
-| --- | --- | --- | --- | --- |
-| F-001 | Definition | P12 | ✅ | 无争议 |
-| F-002 | Unknown | P13 | ❌ | 等待 Taxonomy 扩充 |
-| F-003 | Quote | P13 | ✅ | 原文引用 |
+**Gold Standard = Gold Samples + Gold Review**（见 [review_guidelines.md](docs/canon/review_guidelines.md)）：
+
+- **Part 1 Gold Samples**：独立批准的样本 GS-001 … GS-010。
+- **Part 2 Gold Review**：每个判定的理由（为什么 Definition / 为什么 Quote / 为什么 Unknown）。AI 学的不是结果，而是**判定过程**。
+
+| Sample | Fragment | 初步类型 | Provenance | 是否 Approved | Gold Review（判定理由 / 分歧） |
+| --- | --- | --- | --- | --- | --- |
+| GS-001 | F-001 | Definition | P12 | ✅ | 原文“X 是……”，无解读 |
+| GS-002 | F-007 | Unknown | P13 | ❌ | Taxonomy 无对应类型，等 Type Discovery |
+| GS-003 | F-011 | Quote | P13 | ✅ | 逐字引用，一字未改 |
+
+### M1.1 真正的开始方式（五步）
+
+不是“处理前十页”，而是：
+
+1. 锁定 SQLite `3.46.x` 对应文档。
+2. 从 `CREATE TABLE` 章节**随机抽取 10 个 Fragment**（覆盖不同类型，不是连续页）。
+3. 建立第一批 **Gold Samples**。
+4. 用 [review_guidelines.md](docs/canon/review_guidelines.md) 做人工评审（Checklist 五问，不凭感觉）。
+5. 完成后再回头统计：`unknown` 出现多少？`concept` 出现多少？哪些类型最易产生分歧？
+
+**最后才讨论 Data Model 是否需要演化。** 节奏：先观察再分类，先积累证据再改模型，永远不为了让模型好看而让真实数据迁就模型。
 
 ### M1 只有三个 Deliverable
 
 不是五个，不是十个。三个。
 
 1. **Source Interface** — 一个 `SourceProvider`，一个 PDF 实现，结束。Source 先登记（`sources/<id>/source.yaml`）再解析，暂不用 `data/`。
-2. **Gold Standard** — 10 页的 Knowledge Candidate 经 Human Approve，得到金标准（status：Observed → Approved）。
+2. **Gold Standard** — 随机抽取的 10 个 Fragment 经 Human Approve（Gold Samples + Gold Review），得到金标准（status：Observed → Approved）。
 3. **Knowledge Fidelity + Coverage** — 两个指标能够计算（现在只要定义，计算方式以后再设计）。
 
 > Extraction / AI / Agent / Prompt 都**不是** Deliverable。
@@ -114,11 +137,11 @@ M1.1 第一版交付的不是 JSON、不是数据库，而是一张人工校准�
 Book → Page → Fragment → Knowledge Candidate → Human Review → Approved Knowledge
 ```
 
-因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。交付物是四份 Canon：[knowledge_rules.md](docs/canon/knowledge_rules.md)（规则）、[knowledge_examples.md](docs/canon/knowledge_examples.md)（例子）、[knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)（分类学）、[provenance.md](docs/canon/provenance.md)（出处）。
+因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。交付物是五份 Canon：[knowledge_rules.md](docs/canon/knowledge_rules.md)（规则）、[knowledge_examples.md](docs/canon/knowledge_examples.md)（例子）、[knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)（分类学）、[provenance.md](docs/canon/provenance.md)（出处）、[review_guidelines.md](docs/canon/review_guidelines.md)（评审）。
 
 ### 工程格言
 
-> **Slow is smooth. Smooth is fast.** 宁愿第一周只有 10 页，但十年后这 10 页仍不用返工。
+> **Slow is smooth. Smooth is fast.** 宁愿第一周只有 10 个 Fragment，但十年后这 10 个仍不用返工。
 
 **完成标准（Success Criteria）**
 
@@ -126,7 +149,7 @@ Book → Page → Fragment → Knowledge Candidate → Human Review → Approved
 >
 > 定义与度量方式见 [docs/canon/knowledge_rules.md](docs/canon/knowledge_rules.md)。取向：宁可漏提，不可失真（Fidelity 优先于 Coverage）。
 >
-> 达标：在那 10 页上，AI 产出的候选对照 Gold Standard 的 Fidelity 与 Coverage 达到三方认可的阈值。
+> 达标：在那 10 个 Fragment 上，AI 产出的候选对照 Gold Standard 的 Fidelity 与 Coverage 达到三方认可的阈值。
 
 ---
 
