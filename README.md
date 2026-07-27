@@ -88,15 +88,15 @@ arkmind/
 
 ## 协作模式（Project Charter — Execution Phase）
 
-ArkMind 已从「设计项目」切换为「工程项目」。**Project Charter: Approved / Architecture: Discussion Closed / Execution Phase: Started。** 三个角色职责锁死，不再漂移：
+ArkMind 已从「设计项目」切换为「工程项目」。**Project Charter: Approved / Architecture: Discussion Closed / Execution Phase: Started。** 三个角色按**职责**锁死，不再漂移：
 
 | 角色 | 职责 | 不做 |
 | --- | --- | --- |
-| **Architecture Owner** | 守住架构边界、技术裁决（Approve/Reject）、控制复杂度、审查重大设计变更 | 不写大量文档、不新增原则、不优化 Prompt、不参与实现细节 |
-| **Product Owner** | 决定什么值得做：下一份 Source 是什么 / 为什么做 / 做到什么算成功 / 哪个方向放弃 | 不写代码、不写文档 |
-| **Production Engineer（Qoder）** | 把已批准的设计高质量落地：Parser / Extraction / SQLite / Python / OCR / CI / Git / 测试 / Bug | 少问「设计要不要改」，多问「API 怎么定义 / 单测怎么写 / 性能怎么验证」 |
+| **CEO / Product Owner** | 只回答三个问题：做什么 / 为什么做 / 结果满意吗；决定产品方向与取舍 | 不做技术选型（DB / 语言 / 框架）、不设计表与接口、不当技术中转站 |
+| **Chief Architect（Technical Lead）** | 拥有**整个技术方案**：架构 / 模块划分 / 数据库 / 技术选型 / 接口 / 工程规范 / Git / 测试策略 / 性能目标 / 部署 / 风险 / Roadmap，乃至排期（今天写哪个模块）；产出**可直接开发的 RFC（工程设计）**，承担技术结果 | 不做产品价值判断（那是 CEO） |
+| **Production Engineer（Qoder）** | **施工**：按 RFC / Task 高质量落地（Parser / Extraction / SQLite / Python / OCR / CI / Git / 测试 / Bug），提 PR，随 Review 迭代直到通过 | 不做设计：遇问题回来**汇报**、不自行重设计；少问「设计要不要改」，多问「API 怎么定义 / 单测怎么写 / 性能怎么验证」 |
 
-面对「还能不能更优」的第一反应是问 **Fatal Issue？** 不是 → `Reject`（治理见 [ROADMAP.md](ROADMAP.md)）。
+**工程流程**：CEO 提需求（要什么）→ Chief Architect 出 RFC（Engineering Design：目标 / 方案 / 数据库 / 接口 / 目录 / 风险 / 验收）→ Qoder 施工 → Architect Review → 通过 → CEO 验收。RFC 是工程输入，区别于 ADR（决策记录）；面对「还能更优」先问 **Fatal Issue？** 不是 → `Reject`（治理见 [ROADMAP.md](ROADMAP.md)）。
 
 ## 当前状态
 
