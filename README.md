@@ -26,6 +26,8 @@ Nothing bypasses Knowledge.
 
 这句话决定了 ArkMind 究竟是一个“AI 自动化工具”，还是一个真正值得长期积累的“知识操作系统”。
 
+> **RAG 检索的是 Document；ArkMind 检索的是 Knowledge。** 这是 ArkMind 与所有 RAG 最大的区别（详见 [VISION.md](VISION.md)）。Document 只是来源，**真正的资产是 Knowledge**。
+
 ## 文档（先读这四份，再谈代码）
 
 | 文档 | 回答的问题 |
@@ -62,7 +64,7 @@ Nothing bypasses Knowledge.
 ```
 arkmind/
 ├── ADR/              # 架构决策记录
-├── docs/canon/       # 知识语法 Canon（knowledge_rules / knowledge_examples / provenance）
+├── docs/canon/       # 知识语法 Canon（rules / examples / types / provenance）
 ├── VISION.md
 ├── ARCHITECTURE.md
 ├── DATA_MODEL.md

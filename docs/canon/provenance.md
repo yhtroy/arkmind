@@ -15,7 +15,7 @@
 
 ```
 Knowledge
-   ↓ fragment_ids
+   ↓ provenance（抽象出处，不绑死单一 fragment_ids）
 Fragment
    ↓ location.page
 Page
@@ -23,18 +23,34 @@ Page
 Document
    ↓ source_id
 Source
+   ↓ version
+Version（Source 的具体版本，如 SQLite 3.48）
 ```
 
 链上任意一环缺失，该条 Knowledge 视为**无出处**，直接打回（对应 knowledge_rules.md Rule 7）。无出处 = 不存在。
+
+### Provenance 是抽象，不是 fragment_ids
+
+Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不绑死 `fragment_ids`**。因为一条 Knowledge 可能：
+
+- 来自同一文档的第 1 页和第 9 页（跨 fragment）；
+- 甚至跨多个 Document / Source（跨源合并）。
+
+所以 `provenance` 内部是一组引用，每个引用各自指向一个 Fragment，并各自解析出完整的下游链（Page → Document → Source → Version）。这是平台设计：**不要把第一种实现（单个 fragment）当成最终模型。**
+
+### 为什么必须记到 Version
+
+官方文档会更新。SQLite 3.48 与 3.52 对同一术语的 Definition 可能不同。一条 Knowledge 必须知道它来自**哪个版本**，否则十年以后无法追溯——「这句话当时是对的，但你不知道是哪一版的对」。Version 属于 Source 的一个具体快照。
 
 ## 每一环的追溯字段
 
 | 环 | 由谁指向上一环 | 关键定位信息 |
 | --- | --- | --- |
-| Knowledge → Fragment | `knowledge.fragment_ids`（可跨多个片段） | 哪几段原文支撑这条知识 |
+| Knowledge → Fragment | `knowledge.provenance`（抽象出处，可跨多个 fragment / document / source） | 哪几段原文支撑这条知识 |
 | Fragment → Page | `fragment.location`（JSONB，含 page、章节） | 原文在第几页、哪一章 |
 | Fragment → Document | `fragment.document_id` | 出自哪一次解析 |
 | Document → Source | `document.source_id` | 哪一次解析、用什么解析器（parser / parser_version） |
+| Source → Version | `source.version`（如 `sqlite-3.48`） | 来自 Source 的哪个版本快照 |
 | Source → 原件 | `source.file_path` + `source.file_hash` | 原始文件及其指纹，原件永久保留 |
 
 > Document 之所以独立于 Source：同一 Source 可以被多次、多版本解析（解析器升级后重跑）。追溯时必须能说清「这条知识来自哪一次解析」，否则解析器升级后出处会含糊。

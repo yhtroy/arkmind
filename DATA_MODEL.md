@@ -33,7 +33,8 @@ source ──< document ──< fragment ──< knowledge
 | type | 目前只有 `pdf` |
 | title / author | 书名、作者 |
 | file_path / file_hash | 原件位置与指纹（原件永远保留） |
-| provider / license / version | 来源登记信息（对应 sources/source.yaml，见 ARCHITECTURE Source 层） |
+| version | Source 的具体版本快照（如 `sqlite-3.48`）。**官方文档会更新，版本是 Provenance 链的必须一环（见 provenance.md）。** |
+| provider / license | 来源登记信息（对应 sources/source.yaml，见 ARCHITECTURE Source 层） |
 | created_at | |
 
 ### document — 解析结果
@@ -68,9 +69,9 @@ source ──< document ──< fragment ──< knowledge
 | 字段 | 说明 |
 | --- | --- |
 | id | UUID |
-| fragment_ids | → fragment（出处，一条知识可跨多个片段） |
+| provenance | 结构化出处（抽象）。一条知识可跨多个 fragment、跨多个 document / source / version；内部是一组引用，每个各自解析到完整链（见 [docs/canon/provenance.md](docs/canon/provenance.md)）。**不得用 `fragment_ids` 字段绑死单一实现。** |
 | statement | 事实的规范化表述（忠于原文，不加观点、不做总结） |
-| kind | `concept` / `definition` / `evidence` / `data` / `quote` |
+| kind | `concept` / `definition` / `evidence` / `data` / `quote`（类型字典见 [docs/canon/knowledge_types.md](docs/canon/knowledge_types.md)；枚举最终值待 M1.1 并轨） |
 | status | `observed` / `approved`（作者 Approve 后才算资产，见 ADR-0004 / ADR-0005；不使用 candidate/draft） |
 | embedding | vector |
 | created_at / approved_at | |

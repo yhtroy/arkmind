@@ -43,24 +43,21 @@ Book → Chapter → 10 Pages → Gold Standard
 
 在 10 页上把 Knowledge 定义磨对，返工成本是几分钟；在一本 200 页上磨错了，返工成本是两百页。
 
-### 第一批 Gold Standard 选什么：不用被转述过的书
+### 第一份 Gold Standard（已拍板）：SQLite 官方文档 CREATE TABLE 章节
 
-**第一批 Gold Standard 不用《每天听本书》之类的解读稿。** 它已经经过编辑→讲书人→文稿至少两次人为加工，是 Interpretation，不是 Source。我们建立的是 Knowledge Grammar，不是“得到 Grammar”。
+**不用《每天听本书》之类解读稿**（经过编辑→讲书人→文稿多次人为加工，是 Interpretation 不是 Source）；**也不用 RFC 2119**（知识类型太单一，几乎只有 Definition/Constraint/Requirement，建出来的是 Specification Grammar 而非 Knowledge Grammar）。
 
-第一批数据应满足三个条件：
+正式选定：**SQLite 官方文档的 `CREATE TABLE` 章节**。理由：知识类型丰富（Definition / Example / SQL / Constraint / Note / Warning / Cross Reference / Diagram），几乎覆盖 ArkMind 以后会遇到的大多数知识类型；且版权开放、来源稳定、版本明确。这将成为 ArkMind 第一份 **Verified Gold Standard**。
 
-1. **来源简单** — 一手文本，不是别人解读后的书。
-2. **逻辑简单** — 不要哲学/心理学/管理学（Interpretation 太多）。
-3. **事实边界清晰** — 技术书、说明书这类。
+筛选三条件（仍适用）：来源简单（一手文本）、逻辑简单（不要哲学/心理/管理）、事实边界清晰。
 
-最佳首选：**RFC 文档**（Definition / Requirement / Constraint / Example 天然存在，知识边界极清楚）；或 Markdown 官方教程、Python 官方 Tutorial、SQLite / Docker 官方文档。
-
-> 因为我们现在训练的是**知识分类器**，不是读书助手；验证的是 Knowledge Definition，不是 AI。
+> 因为我们现在训练的是**知识分类器**，不是读书助手；验证的是 Knowledge Grammar 能不能覆盖真实世界，不是 AI。
 
 ### M1.1 — 建立 Human Gold Standard（先行，无代码）
 
 - 三方（作者 / Chief Architect / Qoder）人工对同一 10 页提取知识，建立金标准。
-- 不用 AI、不用 Prompt、不用 Agent。产出是定稿的 [docs/canon/knowledge_rules.md](docs/canon/knowledge_rules.md) 与 [knowledge_examples.md](docs/canon/knowledge_examples.md)（v1.0）。
+- 不用 AI、不用 Prompt、不用 Agent。产出是四份 Canon 定稿（v1.0）：[knowledge_rules.md](docs/canon/knowledge_rules.md)、[knowledge_examples.md](docs/canon/knowledge_examples.md)、[knowledge_types.md](docs/canon/knowledge_types.md)、[provenance.md](docs/canon/provenance.md)。
+- **M1.1 目标不是提取完所有知识，而是验证 Knowledge Grammar 能不能覆盖真实世界。** 如果 SQLite 文档里出现一种我们无法分类的知识，那不是 AI 有问题，而是我们的 Grammar 不完整——改字典。
 - 完成标准：三方对这 10 页的提取结果能稳定收敛；Canon 定稿。
 
 ### M1.2 — AI 学习 Gold Standard
@@ -93,7 +90,7 @@ Book → Chapter → 10 Pages → Gold Standard
 Book → Page → Fragment → Knowledge Candidate → Human Review → Approved Knowledge
 ```
 
-因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。交付物是三份 Canon：[knowledge_rules.md](docs/canon/knowledge_rules.md)、[knowledge_examples.md](docs/canon/knowledge_examples.md)、[provenance.md](docs/canon/provenance.md)。
+因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。交付物是四份 Canon：[knowledge_rules.md](docs/canon/knowledge_rules.md)（规则）、[knowledge_examples.md](docs/canon/knowledge_examples.md)（例子）、[knowledge_types.md](docs/canon/knowledge_types.md)（类型字典）、[provenance.md](docs/canon/provenance.md)（出处）。
 
 ### 工程格言
 
