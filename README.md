@@ -59,12 +59,24 @@ Nothing bypasses Knowledge.
 | 前端 | 暂无（CLI + API 足够） |
 | 部署 | Docker Compose |
 
+## Canon（知识语法：五份，职责单一、互不重叠）
+
+`docs/canon/` 下五份 Canon 是 AI 的学习对象。M1 的成功标准不是文档越来越多，而是**互相引用、不重复解释**：一个概念只在它的 canonical home 定义一次，其他文档引用而不重述。
+
+| Canon | 单一职责（canonical home） | 不负责（引用它处） |
+| --- | --- | --- |
+| [knowledge_rules.md](docs/canon/knowledge_rules.md) | 判定规则（十条）+ 四道门槛 + Fidelity/Coverage 指标 | 类型枚举 → taxonomy；出处结构 → provenance |
+| [knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md) | `kind` 分类体系 + Type Discovery + Unknown 过渡态 | 判定流程 → rules；评审清单 → review |
+| [knowledge_examples.md](docs/canon/knowledge_examples.md) | 正/误提取案例（规则的示例化） | 规则本身 → rules |
+| [provenance.md](docs/canon/provenance.md) | 来源链结构 + `provenance` 抽象 + `extractor` 可追责 | 出处是否必需 → rules Rule 7 |
+| [review_guidelines.md](docs/canon/review_guidelines.md) | 人工评审 Checklist（五问）+ Gold Standard 构成 | 抽样/BCS → ROADMAP；出处细则 → provenance |
+
 ## 目录
 
 ```
 arkmind/
 ├── ADR/              # 架构决策记录
-├── docs/canon/       # 知识语法 Canon（rules / examples / taxonomy / provenance / review）
+├── docs/canon/       # 知识语法 Canon（rules / examples / taxonomy / provenance / review，职责边界见上表）
 ├── VISION.md
 ├── ARCHITECTURE.md
 ├── DATA_MODEL.md

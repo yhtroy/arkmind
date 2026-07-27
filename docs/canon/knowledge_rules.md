@@ -46,7 +46,7 @@
 
 原文「站直，把肩膀向后打开」是 `quote` 或 `evidence`（作者陈述了什么），不是 action。因为一旦标成 action，不同人会提炼出「保持开放姿态」「改善体态」「提高自信」——这已经进入解释（Interpretation），不再是原文事实。
 
-用途/行动建议以后由 **Reasoning 层动态生成**，永不进入 Knowledge Layer。kind 枚举固定为 `concept / definition / evidence / quote / data`。
+用途/行动建议以后由 **Reasoning 层动态生成**，永不进入 Knowledge Layer。（`kind` 的完整取值不在此声明，其 canonical home 是 [knowledge_taxonomy.md](knowledge_taxonomy.md)；本规则只裁定 `action` 不予新增。）
 
 ### Rule 5 — 不要混合，必须拆
 
@@ -60,7 +60,7 @@ statement 不得引入原文没有的词汇、概念、外部知识；不得改�
 
 ### Rule 7 — 出处强制（完整来源链）
 
-没有完整来源链（Knowledge → Fragment → Page → Document → Source → Version）的候选，直接打回，不进入人工评审。无出处 = 不存在。链上任意一环缺失（包括说不清来自哪个 Version）即算无出处。出处用抽象的 `provenance` 承载，不绑死单一 `fragment_ids`。每条还必须记录 `extractor`（human / ocr-vN / pdf-parser-vN）以支持可追责。详见 [provenance.md](provenance.md)。
+没有完整来源链的候选，直接打回，不进入人工评审。无出处 = 不存在。链上任意一环缺失（包括说不清来自哪个 Version）即算无出处。**来源链的结构、`provenance` 抽象、`extractor` 可追责，其 canonical home 是 [provenance.md](provenance.md)**，此处不再展开。
 
 ### Rule 8 — 裸概念不是知识
 

@@ -24,7 +24,7 @@ Document
    ↓ source_id
 Source
    ↓ version
-Version（Source 的具体版本，如 SQLite 3.48）
+Version（Source 的具体版本，如 `sqlite-3.46.x`）
 ```
 
 链上任意一环缺失，该条 Knowledge 视为**无出处**，直接打回（对应 knowledge_rules.md Rule 7）。无出处 = 不存在。
@@ -52,7 +52,7 @@ Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不�
 
 ### 为什么必须记到 Version
 
-官方文档会更新。SQLite 3.48 与 3.52 对同一术语的 Definition 可能不同。一条 Knowledge 必须知道它来自**哪个版本**，否则十年以后无法追溯——「这句话当时是对的，但你不知道是哪一版的对」。Version 属于 Source 的一个具体快照。
+官方文档会更新。同一术语的 Definition 在不同版本可能不同。一条 Knowledge 必须知道它来自**哪个版本**，否则十年以后无法追溯——「这句话当时是对的，但你不知道是哪一版的对」。Version 属于 Source 的一个具体快照。
 
 ## 每一环的追溯字段
 
@@ -72,8 +72,8 @@ Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不�
 
 拿任意一条 approved knowledge，必须能机械地走完：
 
-1. 读 `knowledge.statement` 与 `fragment_ids`；
-2. 取出对应 `fragment.text` 与 `location.page`；
+1. 读 `knowledge.statement` 与 `knowledge.provenance`（抽象出处）；
+2. 顺 `provenance` 解析出每个引用对应的 `fragment.text` 与 `location.page`；
 3. 打开 `source.file_path` 指向的原件，翻到该页；
 4. 用肉眼确认：原文确实支持这条 statement。
 
@@ -82,7 +82,7 @@ Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不�
 ## Provenance 与三状态（ADR-0005）
 
 - **Observed**：Source / Document / Fragment 天然携带来源（它们就是来源本身）。
-- **Approved**：Knowledge 通过 `fragment_ids` 继承 Observed 的来源链，人在 Approve 时必须看到这条链。
+- **Approved**：Knowledge 通过 `provenance` 继承 Observed 的来源链，人在 Approve 时必须看到这条链。
 - **Derived**：Reasoning 产物不直接挂 Source，而是挂它所依据的 `knowledge_ids`——顺着 Approved 再往上，仍能追回 Source（M2 建模时遵守）。
 
 ## 硬约束
@@ -90,4 +90,4 @@ Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不�
 1. **来源链只能补全，不能篡改。** Fragment 的原文与 location 一旦写入，永不修改（ADR-0003）。
 2. **Approve 界面必须展示来源链**，人不能在看不见出处的情况下批准（ADR-0004）。
 3. **删除 Source 前必须先处理其下游**：不允许存在指向已删除 Source 的 Knowledge（悬空出处）。
-4. 跨 Source 合并的知识（一条 Knowledge 的 fragment_ids 跨越多个 Document/Source）允许，但每个 fragment 各自的链都必须完整。
+4. 跨 Source 合并的知识（一条 Knowledge 的 `provenance` 跨越多个 Document/Source）允许，但每个 fragment 引用各自的链都必须完整。

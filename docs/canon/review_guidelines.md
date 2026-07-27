@@ -23,7 +23,7 @@
 
 ### Q3 — 有没有脱离 Provenance？
 
-来源链 Knowledge→Fragment→Page→Document→Source→Version 是否完整？`extractor` 是否记录？任一环缺失即无出处，直接打回（见 provenance.md / rules Rule 7）。
+来源链是否完整、`extractor` 是否记录？任一环缺失即无出处，直接打回（判定细则见 [provenance.md](provenance.md)，另见 rules Rule 7）。
 
 ### Q4 — 有没有多个 Knowledge 混在一起？
 
@@ -48,6 +48,8 @@ Gold Standard 不只是一批被批准的样本，它有两部分：
 **每个判定背后的理由**：为什么判 Definition？为什么判 Quote？为什么记 Unknown？全部写出来。
 
 > 因为以后 AI 学的不是**结果**（这条是 Definition），而是**判定过程**（凭什么判成 Definition）。没有 Gold Review 的 Gold Samples 只是答案，没有解题步骤——训练不出判断力。
+
+> **Gold Standard 永远不是 Truth，只是 Best Current Standard（BCS）。** 它可以被修订，但只能通过 Version（v1.0 → v1.1 → v2.0）而非推翻，每次修订必须说明为什么（BCS 原则与升级机制见 [ROADMAP.md](../../ROADMAP.md) M1.2）。
 
 ---
 
