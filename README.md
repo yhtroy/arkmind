@@ -28,7 +28,9 @@ Nothing bypasses Knowledge.
 
 > **RAG 检索的是 Document；ArkMind 检索的是 Knowledge。** 这是 ArkMind 与所有 RAG 最大的区别（详见 [VISION.md](VISION.md)）。Document 只是来源，**真正的资产是 Knowledge**。
 
-## 文档（先读这四份，再谈代码）
+## 文档（先读这几份，再谈代码）
+
+前四份回答「系统是什么」（Domain），ENGINEERING 回答「系统怎么造」（工程基线）：
 
 | 文档 | 回答的问题 |
 | --- | --- |
@@ -36,6 +38,7 @@ Nothing bypasses Knowledge.
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 系统有哪五层，边界在哪 |
 | [DATA_MODEL.md](DATA_MODEL.md) | Knowledge 长什么样（最重要） |
 | [ROADMAP.md](ROADMAP.md) | 三个 Milestone，不多不少 |
+| [ENGINEERING.md](ENGINEERING.md) | 系统应该怎么造（语言 / 目录 / 规范，工程基线 v1） |
 
 ## 四条铁律（ADR）
 
@@ -46,6 +49,8 @@ Nothing bypasses Knowledge.
 5. [ADR-0005 数据哲学：三状态](ADR/ADR-0005-data-philosophy-three-states.md) — Observed → Approved → Derived，无 candidate/draft
 
 ## 技术选型（每一项都有引入理由，不是因为它火）
+
+> 工程基线的 canonical home 是 [ENGINEERING.md](ENGINEERING.md)（含包管理 / 目录 / 编码 / 依赖 / 测试 / Git 规范）；下表是摘要。
 
 | 层 | 技术 |
 | --- | --- |
@@ -77,14 +82,16 @@ Nothing bypasses Knowledge.
 arkmind/
 ├── ADR/              # 架构决策记录
 ├── docs/canon/       # 知识语法 Canon（rules / examples / taxonomy / provenance / review，职责边界见上表）
+├── sources/          # 数据集登记（Dataset-000x/source.yaml）
 ├── VISION.md
 ├── ARCHITECTURE.md
 ├── DATA_MODEL.md
 ├── ROADMAP.md
+├── ENGINEERING.md    # 工程基线（系统怎么造）
 └── README.md
 ```
 
-代码目录（arkmind-core、arkmind-pipeline、arkmind-api……）在 M1 动工时按需长出来——遵守 ADR-0002，不预建空目录。
+代码（`src/` 与 `tests/`）在 M1 动工时按需长出来——遵守 ADR-0002 与 [ENGINEERING.md](ENGINEERING.md)，不预建空目录。
 
 ## 协作模式（Project Charter — Execution Phase）
 
@@ -102,4 +109,4 @@ ArkMind 已从「设计项目」切换为「工程项目」。**Project Charter:
 
 - **M0**：已 Freeze 并打 tag `v0.1.0-m0`（五层架构 / 五份 ADR / 地基文档冻结）。
 - **M1 Architecture**：已建立 **Architecture Baseline**（commit，不打 Tag）。**讨论状态 = Discussion Closed**（设计不再讨论，除 **Fatal Issue** 外一律 `Reject`）；**验证状态 = Frozen (Pending Validation)**。冻结集合：五层架构、Source → Knowledge、Provenance、Approved 流程、Taxonomy、Review Checklist、Gold Standard、Coverage / Fidelity、ADR 铁律（0001–0005）。任何修改必须先回答「不改会失败在哪里？」，否则直接 `Reject`（治理见 [ROADMAP.md](ROADMAP.md)「Architecture Budget / Ownership / Discussion Closed」）。待第一批 Gold Sample 验证通过 → `Architecture Validated` → 才打 Release Tag `v0.2.0-m1`。
-- **Execution Phase**：已启动（Project Charter Approved）。当前工作 = **M1.1 第一步：建立 Dataset-0001**（登记第一个真实数据集 Source/Metadata/License/Version/Checksum），Dataset-0001 建好后 Gold Sample 才有地方存在（见 [ROADMAP.md](ROADMAP.md) M1.1）。
+- **Execution Phase**：已启动（Project Charter Approved）。**Engineering Baseline v1（Python 3.12+ / uv / FastAPI / Pydantic v2 / pytest / ruff+black / mypy）已冻结**，见 [ENGINEERING.md](ENGINEERING.md)（回答「系统怎么造」，与 Domain Architecture 分离，所有 RFC 必须遵守）。**RFC-0001（Source Module）语言冲突已解除（统一 Python），待 Chief Architect 恢复开发**。当前工作 = **M1.1 第一步：建立 Dataset-0001**（见 [ROADMAP.md](ROADMAP.md) M1.1）。
