@@ -7,10 +7,11 @@
 ## Milestone Gate（每个里程碑的收尾流程）
 
 ```
-Develop → Review → Refactor → Architecture Sign-off → Freeze → Commit → Tag → Next
+Develop → Review → Refactor → Architecture Sign-off → Freeze → Commit → Tag → Hypothesis Review → Next
 ```
 
 - Sign-off 与 Freeze 由 Architecture Owner 宣布。没有 Sign-off 就没有 Freeze。
+- **每个 Milestone 收尾必做 Hypothesis Review（假设回顾）**：先回答两个问题再谈下一步——① 这一阶段哪些假设被**验证**了？② 哪些假设被**证伪**了？知识工程最大的风险不是 Bug，而是一直沿着错误假设前进。这是团队工作方式，不是新架构 / Canon / ADR。
 
 ### 两种 Commit（修正旧纪律）
 
@@ -155,7 +156,7 @@ M1.1 第一版交付的不是 JSON、不是数据库，而是一张人工校准�
 
 不是“处理前十页”，而是：
 
-1. 锁定 SQLite `3.46.x` 对应文档。
+1. **建立 Dataset-0001（第一个真实数据集）**：登记 Source（`sources/<id>/source.yaml`），字段含 Source / Metadata / License / Version（锁 `sqlite-3.46.x`）/ Checksum。**Dataset-0001 建好，Gold Sample 才有地方存在——这个顺序不能反。**
 2. 从 `CREATE TABLE` 章节按 Coverage Design **代表性抽取 10 个 Fragment**（覆盖不同类型，不是连续页）。
 3. 建立第一批 **Gold Samples**。
 4. 用 [review_guidelines.md](docs/canon/review_guidelines.md) 做人工评审（Checklist 五问，不凭感觉）。

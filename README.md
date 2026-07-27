@@ -86,7 +86,20 @@ arkmind/
 
 代码目录（arkmind-core、arkmind-pipeline、arkmind-api……）在 M1 动工时按需长出来——遵守 ADR-0002，不预建空目录。
 
+## 协作模式（Project Charter — Execution Phase）
+
+ArkMind 已从「设计项目」切换为「工程项目」。**Project Charter: Approved / Architecture: Discussion Closed / Execution Phase: Started。** 三个角色职责锁死，不再漂移：
+
+| 角色 | 职责 | 不做 |
+| --- | --- | --- |
+| **Architecture Owner** | 守住架构边界、技术裁决（Approve/Reject）、控制复杂度、审查重大设计变更 | 不写大量文档、不新增原则、不优化 Prompt、不参与实现细节 |
+| **Product Owner** | 决定什么值得做：下一份 Source 是什么 / 为什么做 / 做到什么算成功 / 哪个方向放弃 | 不写代码、不写文档 |
+| **Production Engineer（Qoder）** | 把已批准的设计高质量落地：Parser / Extraction / SQLite / Python / OCR / CI / Git / 测试 / Bug | 少问「设计要不要改」，多问「API 怎么定义 / 单测怎么写 / 性能怎么验证」 |
+
+面对「还能不能更优」的第一反应是问 **Fatal Issue？** 不是 → `Reject`（治理见 [ROADMAP.md](ROADMAP.md)）。
+
 ## 当前状态
 
 - **M0**：已 Freeze 并打 tag `v0.1.0-m0`（五层架构 / 五份 ADR / 地基文档冻结）。
-- **M1 Architecture**：已建立 **Architecture Baseline**（commit，不打 Tag）。**讨论状态 = Discussion Closed**（设计不再讨论，除 **Fatal Issue** 外一律 `Reject`）；**验证状态 = Frozen (Pending Validation)**。冻结集合：五层架构、Source → Knowledge、Provenance、Approved 流程、Taxonomy、Review Checklist、Gold Standard、Coverage / Fidelity、ADR 铁律（0001–0005）。任何修改必须先回答「不改会失败在哪里？」，否则直接 `Reject`（治理见 [ROADMAP.md](ROADMAP.md)「Architecture Budget / Ownership / Discussion Closed」）。待第一批 Gold Sample 验证通过 → `Architecture Validated` → 才打 Release Tag `v0.2.0-m1`。下一步：M1.1（Human Gold Standard）。
+- **M1 Architecture**：已建立 **Architecture Baseline**（commit，不打 Tag）。**讨论状态 = Discussion Closed**（设计不再讨论，除 **Fatal Issue** 外一律 `Reject`）；**验证状态 = Frozen (Pending Validation)**。冻结集合：五层架构、Source → Knowledge、Provenance、Approved 流程、Taxonomy、Review Checklist、Gold Standard、Coverage / Fidelity、ADR 铁律（0001–0005）。任何修改必须先回答「不改会失败在哪里？」，否则直接 `Reject`（治理见 [ROADMAP.md](ROADMAP.md)「Architecture Budget / Ownership / Discussion Closed」）。待第一批 Gold Sample 验证通过 → `Architecture Validated` → 才打 Release Tag `v0.2.0-m1`。
+- **Execution Phase**：已启动（Project Charter Approved）。当前工作 = **M1.1 第一步：建立 Dataset-0001**（登记第一个真实数据集 Source/Metadata/License/Version/Checksum），Dataset-0001 建好后 Gold Sample 才有地方存在（见 [ROADMAP.md](ROADMAP.md) M1.1）。
