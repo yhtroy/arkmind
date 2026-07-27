@@ -10,7 +10,7 @@
 ```
 OCR / 解析 / 提取
         ↓
-Knowledge Candidate（候选，status = candidate）
+Knowledge Candidate（候选，status = observed）
         ↓
 Human Approve
         ↓
@@ -26,7 +26,7 @@ Knowledge（资产，status = approved）
 ## 后果
 
 - AI（含任何 Pipeline）对 knowledge 表只有"提交候选"的权限，没有"转正"的权限。
-- `candidate → approved` 的状态迁移只能由人触发，代码上不允许出现任何自动转正路径。
+- `observed → approved` 的状态迁移只能由人触发，代码上不允许出现任何自动转正路径。
 - Approve 界面/命令必须展示出处（原文 fragment），让人基于原文做判断。
 - 此规则不设开关、不设"批量自动通过"选项。效率不足时优化候选质量，不降低门槛。
 

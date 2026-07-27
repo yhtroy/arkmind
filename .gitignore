@@ -14,3 +14,7 @@ venv/
 # 数据文件（原件另行备份，不进 git）
 data/
 *.pdf
+
+# Source 登记：只保留 source.yaml，原件（original.*）不入库（只留指纹）
+sources/*/original.*
+!sources/*/source.yaml

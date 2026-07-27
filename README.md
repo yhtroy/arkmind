@@ -41,6 +41,7 @@ Nothing bypasses Knowledge.
 2. [ADR-0002 不要过早设计（YAGNI）](ADR/ADR-0002-yagni.md) — 需要的时候再长出来
 3. [ADR-0003 知识必须可以重新理解，而不是重新生成](ADR/ADR-0003-reinterpret-not-regenerate.md) — 只存事实，不存 AI 结论
 4. [ADR-0004 Human Override First](ADR/ADR-0004-human-override-first.md) — AI 不能写 Knowledge，必须人 Approve
+5. [ADR-0005 数据哲学：三状态](ADR/ADR-0005-data-philosophy-three-states.md) — Observed → Approved → Derived，无 candidate/draft
 
 ## 技术选型（每一项都有引入理由，不是因为它火）
 
@@ -61,6 +62,7 @@ Nothing bypasses Knowledge.
 ```
 arkmind/
 ├── ADR/              # 架构决策记录
+├── docs/canon/       # 知识语法 Canon（knowledge_rules / knowledge_examples / provenance）
 ├── VISION.md
 ├── ARCHITECTURE.md
 ├── DATA_MODEL.md

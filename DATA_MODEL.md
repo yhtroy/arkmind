@@ -9,6 +9,7 @@
 3. 每一条数据都能回答：「你从哪里来？」（provenance 链完整）。
 4. 只为 M1 建模。M2/M3 需要的表，到时候再长出来（YAGNI）。
 5. 任何数据进入 knowledge 表之前，必须经作者 Approve（ADR-0004）。
+6. 全局数据只有三种状态：`Observed` → `Approved` → `Derived`（ADR-0005）。本文件只建模 Observed 与 Approved；Derived 属于 Reasoning 层。
 
 ## 存储选型
 
@@ -32,6 +33,7 @@ source ──< document ──< fragment ──< knowledge
 | type | 目前只有 `pdf` |
 | title / author | 书名、作者 |
 | file_path / file_hash | 原件位置与指纹（原件永远保留） |
+| provider / license / version | 来源登记信息（对应 sources/source.yaml，见 ARCHITECTURE Source 层） |
 | created_at | |
 
 ### document — 解析结果
@@ -69,7 +71,7 @@ source ──< document ──< fragment ──< knowledge
 | fragment_ids | → fragment（出处，一条知识可跨多个片段） |
 | statement | 事实的规范化表述（忠于原文，不加观点、不做总结） |
 | kind | `concept` / `definition` / `evidence` / `data` / `quote` |
-| status | `candidate` / `approved`（作者 Approve 后才算资产，见 ADR-0004） |
+| status | `observed` / `approved`（作者 Approve 后才算资产，见 ADR-0004 / ADR-0005；不使用 candidate/draft） |
 | embedding | vector |
 | created_at / approved_at | |
 

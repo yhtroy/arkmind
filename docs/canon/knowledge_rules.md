@@ -10,16 +10,18 @@
 
 ## 判定总纲：进入 Knowledge Layer 的四道门槛
 
-一条候选（candidate）必须**同时**通过以下四道门槛，缺一即打回：
+一条候选（Observed 状态，ADR-0005）必须**同时**通过以下四道门槛，缺一即打回：
 
 | 门槛 | 判定问题 |
 | --- | --- |
 | 1. 事实性 | 这是原文陈述的事实吗？（不是修辞、过渡、情绪、跨段归纳） |
 | 2. 忠实性 | 表述里有没有原文不存在的概念、外部知识、强度改变？ |
-| 3. 可回链 | 能指向具体的 fragment 和页码吗？ |
+| 3. 可回链 | 能追溯完整来源链吗？（见 [provenance.md](provenance.md)） |
 | 4. 可核验 | 第三个人拿着原文，能机械地判断"原文支持/不支持这句话"吗？ |
 
 任何一道门槛上 Human 判断不稳定（三方意见分裂且无法收敛）→ 该条**不进入** Knowledge Layer。这不是遗憾，这是原则。
+
+> 一条数据的生命周期遵循三状态（ADR-0005）：`Observed`（被观测到）→ `Approved`（人确认入库）→ `Derived`（推理产物）。本文档只管前两个状态之间那道人工闸门。
 
 ---
 
@@ -56,9 +58,9 @@
 statement 不得引入原文没有的词汇、概念、外部知识；不得改变强度（"可能有助于" ≠ "能显著提升"）；不得把比喻升华成道理。
 **"没有错"不等于"忠实"。** 判定标准只有一个：原文写了吗？
 
-### Rule 7 — 出处强制
+### Rule 7 — 出处强制（完整来源链）
 
-没有 fragment_ids 和页码的候选，直接打回，不进入人工评审。无出处 = 不存在。
+没有完整来源链（Knowledge → Fragment → Page → Document → Source）的候选，直接打回，不进入人工评审。无出处 = 不存在。链上任意一环缺失即算无出处。详见 [provenance.md](provenance.md)。
 
 ### Rule 8 — 裸概念不是知识
 
@@ -75,34 +77,39 @@ Concept 只有在原文赋予它定义、性质或角色时才成条（kind = `c
 
 ---
 
-## Knowledge Fidelity（知识保真度）—— M1 唯一 KPI
+## Knowledge Fidelity + Coverage — M1 两个指标
 
-### 定义
+M1 同时看两个指标，缺一不可。只看一个会被刋：一条都不提，Fidelity 100%、Coverage 0%。
 
-> 一批知识候选中，经 Human 对照原文判定为"忠实原文事实"的比例。
+### Fidelity（保真度）— 有没有忠于原文
+
+> 一批候选中，经 Human 对照原文判定为“忠实原文事实”的比例。
 
 ```
-Knowledge Fidelity = faithful candidates / total candidates
+Fidelity = faithful candidates / total candidates
 ```
 
-### 判定方式
+每条候选对照 fragment 原文，回答一个二元问题：**“这句话是原文陈述的事实吗？”** 是 → faithful；否（升华、外推、混入外部知识、强度失真、归纳总结）→ unfaithful。
 
-每条候选由人对照 fragment 原文，回答一个二元问题：
+### Coverage（覆盖度）— 有没有漏
 
-> **"这句话是原文陈述的事实吗？"**
+> 金标准中应该被提取的事实，实际被提取到的比例。
 
-- 是 → faithful
-- 否（升华、外推、混入外部知识、强度失真、归纳总结）→ unfaithful
+```
+Coverage = captured gold facts / total gold facts
+```
 
-### 与传统指标的区别
+以 M1.1 的 Human Gold Standard 为分母，看 AI 漏了多少应该入库的事实。
 
-- 不是 Accuracy：`保持自信` 这条提取"没有错"，但原文没写，Fidelity 记为 unfaithful。
-- 不是 Recall：**漏提不扣 Fidelity**。M1 的取向是"宁可漏提，不可失真"。
-- 不是 Precision：Precision 问"对不对"，Fidelity 问"是不是原文事实"。
+### 两者关系与 M1 取向
+
+- 两个指标必须同时报告，不得只报其一。
+- M1 优先保 Fidelity：**宁可漏提，不可失真**。Coverage 低可以迭代提升，但一旦失真，知识就被污染了。
+- 都不是 Accuracy/Recall/Precision：Fidelity 问“是不是原文事实”，Coverage 问“漏没漏”。
 
 ### M1 的考核方式
 
-M1.2 中，AI 在同样 10 页上产出候选，对照 M1.1 的 Human Gold Standard 计算 Fidelity。提取数量不是 KPI，永远不是。
+M1.2 中，AI 在同样 10 页上产出候选，对照 M1.1 的 Human Gold Standard 同时计算 Fidelity 与 Coverage。提取数量本身不是 KPI。
 
 ---
 

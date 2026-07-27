@@ -27,6 +27,30 @@ class SourceProvider:
 ```
 
 - 新增一种输入（图片、Markdown、EPUB、网页、RSS、论文、字幕……）= 新增一个 Provider 实现，不改下游任何一层。但遵守 YAGNI（ADR-0002）：现在只实现 `PdfSourceProvider`。
+- **每个 Source 先登记，再解析。** 磁盘布局固定为（M1 不用 `data/`，因为还没有 Source 抽象）：
+
+```text
+sources/
+    <source-id>/
+        source.yaml     # 来源登记（入库）
+        original.pdf     # 原件（不入库，只留指纹）
+```
+
+`source.yaml` 回答“这份 Source 到底来自哪里”：
+
+```yaml
+id: python-tutorial-en
+type: markdown            # pdf / markdown / image / web ...
+title: The Python Tutorial
+author: Python Software Foundation
+language: en
+license: PSF
+checksum:                 # 原件指纹
+version:                  # 来源版本
+provider:                 # 对应哪个 SourceProvider
+```
+
+> 登记信息落到 DATA_MODEL 的 `source` 表（provider / license / version / file_hash），保证每一条 Knowledge 都能逆着来源链追回原件（见 [docs/canon/provenance.md](docs/canon/provenance.md)）。
 
 ### 2. Knowledge
 
