@@ -89,4 +89,4 @@ arkmind/
 ## 当前状态
 
 - **M0**：已 Freeze 并打 tag `v0.1.0-m0`（五层架构 / 五份 ADR / 地基文档冻结）。
-- **M1 Architecture**：已建立 **Architecture Baseline**（commit，不打 Tag），状态 **Frozen (Pending Validation)**。冻结集合：五层架构、Source → Knowledge、Provenance、Approved 流程、Taxonomy、Review Checklist、Gold Standard、Coverage / Fidelity、ADR 铁律（0001–0005）。后续任何新增 ADR / Canon / Layer / Principle / Philosophy 只能作为 RFC 提案交 Owner 裁决，除非发现**致命缺陷**（治理见 [ROADMAP.md](ROADMAP.md)「Architecture Budget / Ownership」）。待第一批 Gold Sample 验证通过 → `Architecture Validated` → 才打 Release Tag `v0.2.0-m1`。下一步：M1.1（Human Gold Standard）。
+- **M1 Architecture**：已建立 **Architecture Baseline**（commit，不打 Tag）。**讨论状态 = Discussion Closed**（设计不再讨论，除 **Fatal Issue** 外一律 `Reject`）；**验证状态 = Frozen (Pending Validation)**。冻结集合：五层架构、Source → Knowledge、Provenance、Approved 流程、Taxonomy、Review Checklist、Gold Standard、Coverage / Fidelity、ADR 铁律（0001–0005）。任何修改必须先回答「不改会失败在哪里？」，否则直接 `Reject`（治理见 [ROADMAP.md](ROADMAP.md)「Architecture Budget / Ownership / Discussion Closed」）。待第一批 Gold Sample 验证通过 → `Architecture Validated` → 才打 Release Tag `v0.2.0-m1`。下一步：M1.1（Human Gold Standard）。

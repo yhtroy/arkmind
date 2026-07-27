@@ -10,7 +10,7 @@
 Develop → Review → Refactor → Architecture Sign-off → Freeze → Commit → Tag → Next
 ```
 
-- Sign-off 与 Freeze 由 Chief Architect 宣布。没有 Sign-off 就没有 Freeze。
+- Sign-off 与 Freeze 由 Architecture Owner 宣布。没有 Sign-off 就没有 Freeze。
 
 ### 两种 Commit（修正旧纪律）
 
@@ -43,17 +43,27 @@ M1 的成功标准不是文档越来越多，而是**文档之间开始互相引
 
 架构也有预算，不是越漂亮越好。**每个 Milestone 最多 3 个 Architecture Decision**（Layer / ADR / Canon / Principle / Philosophy 级别）；超出的一律 `Rejected`（作为 RFC 提案交 Owner 裁决），不再修改 Architecture。**不预建 RFC Backlog 系统**——等第一条真正需要沉淀的 RFC 出现再建（YAGNI）。
 
-区分两个阶段：**架构设计（Architecture）** 与 **文档优化（Optimization）** 是不同阶段——一旦越过设计边界进入优化，就该收手。当 Chief Architect 宣布某 Milestone 的 Architecture 进入 Freeze，后续只接受**致命缺陷**（判据是「继续下去项目会死」，不是「还能更优」）级别的修改；其余一律 `Rejected`（作为 RFC 提案）。
+区分两个阶段：**架构设计（Architecture）** 与 **文档优化（Optimization）** 是不同阶段——一旦越过设计边界进入优化，就该收手。当 Architecture Owner 宣布某 Milestone 的 Architecture 进入 Freeze，后续只接受**致命缺陷**（判据是「继续下去项目会死」，不是「还能更优」）级别的修改；其余一律 `Rejected`（作为 RFC 提案）。
 
 > **稳定，比完美重要。** 成熟架构师最重要的能力不是一直提出更好的设计，而是知道什么时候说「够好了，开始写代码」。
 
 ### Architecture Ownership（单一 Owner，防 Design by Committee）
 
-Architecture 只有一个 Owner = Chief Architect。其余所有人（Product Owner、Qoder / Production Engineer）只能提 RFC（提案），不能直接改 Architecture；由 Owner Approve 或 Reject。好的架构大多毁于委员会设计，这条规则专防它。
+Architecture 只有一个 Owner = **Architecture Owner**。这是**职责，不是职位**——无论将来是单人开发、团队扩大，还是某位成员不再参与，Owner 这个角色都不变（当前由 Chief Architect 担任）。其余所有人（Product Owner、Qoder / Production Engineer）只能提 RFC（提案），不能直接改 Architecture；由 Architecture Owner Approve 或 Reject。好的架构大多毁于委员会设计，这条规则专防它。
 
 ### Architecture Freeze ≠ Milestone Release
 
 Freeze 不等于 Release。架构冻结后先是 `Frozen (Pending Validation)`；经真实数据（第一批 Gold Sample）验证通过才 `Architecture Validated`，此时才打 Release Tag（`v0.x.0-mN`）。所以 Baseline 阶段只 commit（`M1: Architecture Baseline`）、不打 Tag——避免验证发现问题后删 tag / 重 tag。
+
+### 修改 Architecture 的唯一门票：会失败在哪里？
+
+任何人（包括 Architecture Owner 自己）提出 Architecture 修改，必须先回答一个问题：**现有设计会导致什么真实失败？如果不改，会失败在哪里？** 不是「更优」、不是「更漂亮」、不是「更通用」。回答不出真实失败场景 → 直接 `Reject`。
+
+### M1 Architecture Discussion Closed（不是 Freeze，是 Closed）
+
+M1 的架构讨论正式 **Closed**。Closed 比 Freeze 更强：Freeze 理论上还能解冻，Closed 代表**不再讨论**。除非出现 **Fatal Issue（致命问题）**——例如 Provenance 无法表达真实来源、Taxonomy 根本无法覆盖真实知识、Approved 流程无法运行——否则任何「还能更优」一律 `Reject`。
+
+> 注意区分两条轴：**讨论状态 = Closed**（设计不再讨论）；**验证状态 = Frozen (Pending Validation)**（架构尚未被真实数据验证）。二者并存：停止讨论，让真实数据来检验，而不是继续检验文档。
 
 ---
 
@@ -233,6 +243,8 @@ Book → Page → Fragment → Knowledge Candidate → Human Review → Approved
 ## 附录：Future Notes（非阻塞设计备注，不属 M1 验收）
 
 以下是过程中沉淀的设计经验。它们**存在，但不是 M1 的 Acceptance Criteria，也不是 Deliverable，不参与当前执行**；将来真有需要时再从这里提取为正式 RFC。
+
+> **Future Notes 不具有约束力。** 它不是 ADR、不是 Canon、不是 Acceptance Criteria，只是当时的思考记录，可以随时删除、修改、放弃，不需要走 Architecture Review——以防它慢慢长成第二套规范。
 
 - **Sampling Plan**：一份说明「这批 Gold Standard 为什么被认为具有代表性」的记录，以后甚至可能有 `SamplingProvider`（先定接口再谈实现）。M1.1 不强制产出。
 - **Gold Standard 是 BCS（Best Current Standard）而非 Truth**：发现缺陷后按 Version（v1.0→v1.1→v2.0）迭代、每次说明为什么，而非推翻；`gold_standard_versioning.md` 等真需要时再写。
