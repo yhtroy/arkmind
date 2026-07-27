@@ -39,18 +39,18 @@ sources/
 `source.yaml` 回答“这份 Source 到底来自哪里”：
 
 ```yaml
-id: python-tutorial-en
-type: markdown            # pdf / markdown / image / web ...
-title: The Python Tutorial
-author: Python Software Foundation
+id: sqlite-create-table
+type: web                 # pdf / markdown / image / web ...
+title: SQLite CREATE TABLE
+author: SQLite
 language: en
-license: PSF
+license: public-domain
 checksum:                 # 原件指纹
-version:                  # 来源版本
+version: sqlite-3.46.x    # 来源版本（M1 锁定，完成前不升级）
 provider:                 # 对应哪个 SourceProvider
 ```
 
-> 登记信息落到 DATA_MODEL 的 `source` 表（provider / license / version / file_hash），保证每一条 Knowledge 都能逆着来源链追回原件（见 [docs/canon/provenance.md](docs/canon/provenance.md)）。
+> 登记信息落到 DATA_MODEL 的 `source` 表（provider / license / version / file_hash），保证每一条 Knowledge 都能逆着来源链追回原件（见 [docs/canon/provenance.md](docs/canon/provenance.md)）；每条 Knowledge 还记录 `extractor`（human / ocr-vN / pdf-parser-vN）以支持可追责。
 
 ### 2. Knowledge
 

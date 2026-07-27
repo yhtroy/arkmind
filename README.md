@@ -64,7 +64,7 @@ Nothing bypasses Knowledge.
 ```
 arkmind/
 ├── ADR/              # 架构决策记录
-├── docs/canon/       # 知识语法 Canon（rules / examples / types / provenance）
+├── docs/canon/       # 知识语法 Canon（rules / examples / taxonomy / provenance）
 ├── VISION.md
 ├── ARCHITECTURE.md
 ├── DATA_MODEL.md

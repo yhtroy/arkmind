@@ -23,6 +23,18 @@ Git 首先是历史，不是 Release 工具。不能因为没 Freeze 就丢掉�
 
 - **Tag 只属于 Freeze。** Working Draft 可以随时 commit（例：`M1: Canon draft (working)`），但绝不打 Tag。
 
+### 收敛机制：每次 Architecture Review 必答三问
+
+为防止“数据模型追着类型字典跑”式的膨胀，每次 Review 都回答：
+
+1. **有没有新增概念？**
+2. **有没有新增字段？**
+3. **有没有新增状态？**
+
+三个都是“没有” → 这一轮大概率是在**完善**，健康。出现两个以上“新增” → **停下来重新 Review**，警惕膨胀。
+
+> 配套设计哲学（DATA_MODEL 原则 7）：**不为了让数据符合模型而修改数据；只在证据足够时才演化模型。**
+
 ---
 
 ## M1 — Source → Approved Knowledge
@@ -49,6 +61,8 @@ Book → Chapter → 10 Pages → Gold Standard
 
 正式选定：**SQLite 官方文档的 `CREATE TABLE` 章节**。理由：知识类型丰富（Definition / Example / SQL / Constraint / Note / Warning / Cross Reference / Diagram），几乎覆盖 ArkMind 以后会遇到的大多数知识类型；且版权开放、来源稳定、版本明确。这将成为 ArkMind 第一份 **Verified Gold Standard**。
 
+**锁定版本：`sqlite-3.46.x`（不追最新版）**。最新版会变，金标准需要一个冻结的参系；Source 的 `id / version / checksum` 全部固定，**M1 完成之前绝不升级**。
+
 筛选三条件（仍适用）：来源简单（一手文本）、逻辑简单（不要哲学/心理/管理）、事实边界清晰。
 
 > 因为我们现在训练的是**知识分类器**，不是读书助手；验证的是 Knowledge Grammar 能不能覆盖真实世界，不是 AI。
@@ -56,8 +70,8 @@ Book → Chapter → 10 Pages → Gold Standard
 ### M1.1 — 建立 Human Gold Standard（先行，无代码）
 
 - 三方（作者 / Chief Architect / Qoder）人工对同一 10 页提取知识，建立金标准。
-- 不用 AI、不用 Prompt、不用 Agent。产出是四份 Canon 定稿（v1.0）：[knowledge_rules.md](docs/canon/knowledge_rules.md)、[knowledge_examples.md](docs/canon/knowledge_examples.md)、[knowledge_types.md](docs/canon/knowledge_types.md)、[provenance.md](docs/canon/provenance.md)。
-- **M1.1 目标不是提取完所有知识，而是验证 Knowledge Grammar 能不能覆盖真实世界。** 如果 SQLite 文档里出现一种我们无法分类的知识，那不是 AI 有问题，而是我们的 Grammar 不完整——改字典。
+- 不用 AI、不用 Prompt、不用 Agent。产出是四份 Canon 定稿（v1.0）：[knowledge_rules.md](docs/canon/knowledge_rules.md)、[knowledge_examples.md](docs/canon/knowledge_examples.md)、[knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)、[provenance.md](docs/canon/provenance.md)。
+- **M1.1 目标不是提取完所有知识，而是验证 Knowledge Grammar 能不能覆盖真实世界。** 如果 SQLite 文档里出现一种我们无法分类的知识，先记为 `unknown`（不是失败，是 Grammar 不足的信号，见 Type Discovery）——改分类学，不硬塞。
 - 完成标准：三方对这 10 页的提取结果能稳定收敛；Canon 定稿。
 
 ### M1.2 — AI 学习 Gold Standard
@@ -71,6 +85,16 @@ Book → Chapter → 10 Pages → Gold Standard
 - ❌ 写作、文章生成（M1 根本不关心知乎和小红书）
 - ❌ Agent / Web 前端
 - ❌ 一次处理整本书
+
+### M1.1 最终交付物：一张人工校准表（不是代码/数据库/JSON）
+
+M1.1 第一版交付的不是 JSON、不是数据库，而是一张人工校准表——**这张表就是 Gold Standard**。以后任何 Parser / LLM / OCR 都必须和这张表对比。
+
+| Fragment | 初步类型 | Provenance | 是否 Approved | 备注 |
+| --- | --- | --- | --- | --- |
+| F-001 | Definition | P12 | ✅ | 无争议 |
+| F-002 | Unknown | P13 | ❌ | 等待 Taxonomy 扩充 |
+| F-003 | Quote | P13 | ✅ | 原文引用 |
 
 ### M1 只有三个 Deliverable
 
@@ -90,7 +114,7 @@ Book → Chapter → 10 Pages → Gold Standard
 Book → Page → Fragment → Knowledge Candidate → Human Review → Approved Knowledge
 ```
 
-因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。交付物是四份 Canon：[knowledge_rules.md](docs/canon/knowledge_rules.md)（规则）、[knowledge_examples.md](docs/canon/knowledge_examples.md)（例子）、[knowledge_types.md](docs/canon/knowledge_types.md)（类型字典）、[provenance.md](docs/canon/provenance.md)（出处）。
+因为我们不是在开发 OCR，而是在定义 ArkMind 的**知识语法**。M1 第一周不属于 AI，属于 Knowledge Engineering。交付物是四份 Canon：[knowledge_rules.md](docs/canon/knowledge_rules.md)（规则）、[knowledge_examples.md](docs/canon/knowledge_examples.md)（例子）、[knowledge_taxonomy.md](docs/canon/knowledge_taxonomy.md)（分类学）、[provenance.md](docs/canon/provenance.md)（出处）。
 
 ### 工程格言
 

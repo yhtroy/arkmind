@@ -29,6 +29,18 @@ Version（Source 的具体版本，如 SQLite 3.48）
 
 链上任意一环缺失，该条 Knowledge 视为**无出处**，直接打回（对应 knowledge_rules.md Rule 7）。无出处 = 不存在。
 
+### 除了“来自哪”，还要知道“谁提的”—— Extractor
+
+来源链回答「知识来自哪里」；`extractor` 回答「知识是谁提出来的」：
+
+```
+Extractor: human            # 人工（M1.1 全部如此）
+Extractor: ocr-v1           # 某版本 OCR
+Extractor: pdf-parser-v2    # 某版本 PDF 解析器
+```
+
+这叫**可追责（Traceability）**：如果某个 Extractor（比如 `ocr-v1`）事后发现 Bug，我们能精确定位哪些 Knowledge 受影响、需要重提。Extractor 是 Knowledge 的属性（随 `provenance` 一同记录）。
+
 ### Provenance 是抽象，不是 fragment_ids
 
 Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不绑死 `fragment_ids`**。因为一条 Knowledge 可能：
@@ -50,8 +62,9 @@ Knowledge 到 Fragment 这一环，**用抽象的 `provenance` 承载，绝不�
 | Fragment → Page | `fragment.location`（JSONB，含 page、章节） | 原文在第几页、哪一章 |
 | Fragment → Document | `fragment.document_id` | 出自哪一次解析 |
 | Document → Source | `document.source_id` | 哪一次解析、用什么解析器（parser / parser_version） |
-| Source → Version | `source.version`（如 `sqlite-3.48`） | 来自 Source 的哪个版本快照 |
+| Source → Version | `source.version`（如 `sqlite-3.46.x`） | 来自 Source 的哪个版本快照 |
 | Source → 原件 | `source.file_path` + `source.file_hash` | 原始文件及其指纹，原件永久保留 |
+| Knowledge → Extractor | `knowledge.extractor`（如 `human` / `ocr-v1`） | 这条知识是谁提取的（可追责） |
 
 > Document 之所以独立于 Source：同一 Source 可以被多次、多版本解析（解析器升级后重跑）。追溯时必须能说清「这条知识来自哪一次解析」，否则解析器升级后出处会含糊。
 

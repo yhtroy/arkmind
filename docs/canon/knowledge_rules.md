@@ -60,7 +60,7 @@ statement 不得引入原文没有的词汇、概念、外部知识；不得改�
 
 ### Rule 7 — 出处强制（完整来源链）
 
-没有完整来源链（Knowledge → Fragment → Page → Document → Source → Version）的候选，直接打回，不进入人工评审。无出处 = 不存在。链上任意一环缺失（包括说不清来自哪个 Version）即算无出处。出处用抽象的 `provenance` 承载，不绑死单一 `fragment_ids`。详见 [provenance.md](provenance.md)。
+没有完整来源链（Knowledge → Fragment → Page → Document → Source → Version）的候选，直接打回，不进入人工评审。无出处 = 不存在。链上任意一环缺失（包括说不清来自哪个 Version）即算无出处。出处用抽象的 `provenance` 承载，不绑死单一 `fragment_ids`。每条还必须记录 `extractor`（human / ocr-vN / pdf-parser-vN）以支持可追责。详见 [provenance.md](provenance.md)。
 
 ### Rule 8 — 裸概念不是知识
 
