@@ -23,11 +23,15 @@ class PdfSourceProvider(SourceProvider):
             raise SourceNotFoundError(str(source))
         try:
             return self._extract_with_pymupdf(source)
-        except Exception:  # noqa: BLE001 -- RFC-0002: fall back on any PyMuPDF failure
+        except BaseException as error:
+            if isinstance(error, (KeyboardInterrupt, SystemExit)):
+                raise
             try:
                 return self._extract_with_pdfplumber(source)
-            except Exception as error:
-                raise SourceReadError(str(source)) from error
+            except BaseException as fallback_error:
+                if isinstance(fallback_error, (KeyboardInterrupt, SystemExit)):
+                    raise
+                raise SourceReadError(str(source)) from fallback_error
 
     @staticmethod
     def _extract_with_pymupdf(source: Path) -> list[str]:

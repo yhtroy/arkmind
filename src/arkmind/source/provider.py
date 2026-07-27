@@ -11,7 +11,8 @@ class SourceProvider(ABC):
 
     @abstractmethod
     def extract(self, source: Path) -> list[str]:
-        """Return per-page text.
+        """Return per-page UTF-8 text, ordered to match the PDF page order.
 
-        Index equals page number minus one; an empty page returns ``""``.
+        The list index equals the page number minus one; an empty page
+        returns ``""``.
         """
