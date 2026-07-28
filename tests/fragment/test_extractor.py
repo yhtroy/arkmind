@@ -11,7 +11,7 @@ _SOURCE_ID = "dataset-0001"
 
 
 def _expected_id(page_number: int, sequence: int, text: str) -> str:
-    payload = f"{_SOURCE_ID}:{page_number}:{sequence}:{text}"
+    payload = f"{_SOURCE_ID}\n{page_number}\n{sequence}\n{text}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -36,7 +36,7 @@ def test_multiple_pages() -> None:
     result = FragmentExtractor().extract(["First page", "Second page"], _SOURCE_ID)
     assert [(f.page_number, f.sequence, f.text) for f in result] == [
         (1, 0, "First page"),
-        (2, 0, "Second page"),
+        (2, 1, "Second page"),
     ]
 
 
@@ -60,7 +60,7 @@ def test_fragment_id_is_stable_and_matches_algorithm() -> None:
     assert [f.fragment_id for f in first] == [f.fragment_id for f in second]
     assert first[0].fragment_id == _expected_id(1, 0, "Alpha")
     assert first[1].fragment_id == _expected_id(1, 1, "Beta")
-    assert first[2].fragment_id == _expected_id(2, 0, "Gamma")
+    assert first[2].fragment_id == _expected_id(2, 2, "Gamma")
 
 
 def test_document_order_preserved() -> None:
@@ -69,6 +69,6 @@ def test_document_order_preserved() -> None:
     assert [(f.page_number, f.sequence, f.text) for f in result] == [
         (1, 0, "P1a"),
         (1, 1, "P1b"),
-        (2, 0, "P2a"),
-        (2, 1, "P2b"),
+        (2, 2, "P2a"),
+        (2, 3, "P2b"),
     ]

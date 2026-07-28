@@ -3,7 +3,9 @@
 Paragraph boundary is two or more consecutive newlines. Each surviving
 paragraph is stripped of leading/trailing whitespace; empty paragraphs are
 dropped. ``page_number`` is 1-based (page i+1 for ``pages[i]``); ``sequence``
-is the 0-based index of the fragment within its page.
+is the 0-based index of the fragment within the whole source, continuous
+across pages. ``fragment_id`` is the lowercase-hex SHA-256 of UTF-8
+``source_id``, ``page_number``, ``sequence`` and ``text`` joined by ``"\n"``.
 """
 
 from __future__ import annotations
@@ -21,9 +23,9 @@ class FragmentExtractor:
 
     def extract(self, pages: list[str], source_id: str) -> list[Fragment]:
         fragments: list[Fragment] = []
+        sequence = 0
         for page_index, page_text in enumerate(pages):
             page_number = page_index + 1
-            sequence = 0
             for raw in _PARAGRAPH_BOUNDARY.split(page_text):
                 text = raw.strip()
                 if not text:
@@ -41,5 +43,5 @@ class FragmentExtractor:
 
     @staticmethod
     def _fragment_id(source_id: str, page_number: int, sequence: int, text: str) -> str:
-        payload = f"{source_id}:{page_number}:{sequence}:{text}"
+        payload = f"{source_id}\n{page_number}\n{sequence}\n{text}"
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
