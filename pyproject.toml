@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arkmind"
+version = "0.1.0"
+description = "ArkMind — Personal Knowledge OS"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2",
+    "pyyaml>=6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff",
+    "black",
+    "mypy",
+    "types-pyyaml",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arkmind"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["arkmind"]
+mypy_path = "src"
+warn_unused_ignores = true
+disallow_untyped_defs = true

@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
 
 # 环境与密钥
 .env
@@ -15,6 +19,6 @@ venv/
 data/
 *.pdf
 
-# Source 登记：只保留 source.yaml，原件（original.*）不入库（只留指纹）
-sources/*/original.*
+# Source 登记：只保留 source.yaml，冻结原件（original）不入库（只留指纹 checksum）
+sources/*/original
 !sources/*/source.yaml
