@@ -7,7 +7,7 @@ from arkmind.knowledge.taxonomy import KnowledgeTaxonomy
 
 
 def _knowledge(text: str) -> Knowledge:
-    return Knowledge(knowledge_id="k", fragment_id="f", text=text)
+    return Knowledge(knowledge_id="k", fragment_id="f", source_id="s", text=text)
 
 
 def _classify_one(text: str) -> str | None:
