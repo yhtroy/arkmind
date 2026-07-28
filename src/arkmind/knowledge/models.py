@@ -11,3 +11,4 @@ class Knowledge(BaseModel):
     knowledge_id: str
     fragment_id: str
     text: str
+    kind: str | None = None
