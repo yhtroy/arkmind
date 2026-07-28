@@ -2,8 +2,9 @@
 
 Each Fragment maps to exactly one Knowledge: the text is copied verbatim (no
 split, merge, reasoning or rewrite). Output order matches the input order.
-``knowledge_id`` is the lowercase-hex SHA-256 of UTF-8 ``fragment_id`` and
-``text`` joined by ``"\n"``.
+Every Knowledge is tagged with the given ``source_id``. ``knowledge_id`` is
+the lowercase-hex SHA-256 of UTF-8 ``fragment_id`` and ``text`` joined by
+``"\n"``.
 """
 
 from __future__ import annotations
@@ -17,11 +18,12 @@ from arkmind.knowledge.models import Knowledge
 class KnowledgeExtractor:
     """Map each Fragment to a single Knowledge, preserving order."""
 
-    def extract(self, fragments: list[Fragment]) -> list[Knowledge]:
+    def extract(self, fragments: list[Fragment], source_id: str) -> list[Knowledge]:
         return [
             Knowledge(
                 knowledge_id=self._knowledge_id(fragment.fragment_id, fragment.text),
                 fragment_id=fragment.fragment_id,
+                source_id=source_id,
                 text=fragment.text,
             )
             for fragment in fragments
