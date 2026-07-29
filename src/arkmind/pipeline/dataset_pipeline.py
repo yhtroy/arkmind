@@ -1,9 +1,9 @@
 """DatasetPipeline — orchestrate all layers into a DatasetResult (RFC-0007).
 
 Runs, in fixed order: PdfSourceProvider -> FragmentExtractor ->
-KnowledgeExtractor -> KnowledgeTaxonomy -> ProvenanceBuilder. Pure
-orchestration: no new business logic, and module exceptions propagate
-unchanged (the pipeline catches nothing).
+KnowledgeExtractor -> KnowledgeTaxonomy -> KnowledgeNormalizer ->
+ProvenanceBuilder. Pure orchestration: no new business logic, and module
+exceptions propagate unchanged (the pipeline catches nothing).
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from pathlib import Path
 
 from arkmind.fragment.extractor import FragmentExtractor
 from arkmind.knowledge.extractor import KnowledgeExtractor
+from arkmind.knowledge.normalizer import KnowledgeNormalizer
 from arkmind.knowledge.taxonomy import KnowledgeTaxonomy
 from arkmind.pipeline.models import DatasetResult
 from arkmind.provenance.builder import ProvenanceBuilder
@@ -26,6 +27,7 @@ class DatasetPipeline:
         fragments = FragmentExtractor().extract(pages, source_id)
         knowledge = KnowledgeExtractor().extract(fragments, source_id)
         knowledge = KnowledgeTaxonomy().classify(knowledge)
+        knowledge = KnowledgeNormalizer().normalize(knowledge)
         provenance = ProvenanceBuilder().build(knowledge)
         return DatasetResult(
             source_id=source_id,

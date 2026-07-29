@@ -13,3 +13,4 @@ class Knowledge(BaseModel):
     source_id: str
     text: str
     kind: str | None = None
+    normalized: str | None = None
