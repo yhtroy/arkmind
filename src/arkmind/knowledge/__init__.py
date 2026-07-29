@@ -2,5 +2,6 @@
 
 from arkmind.knowledge.extractor import KnowledgeExtractor
 from arkmind.knowledge.models import Knowledge
+from arkmind.knowledge.normalizer import KnowledgeNormalizer
 
-__all__ = ["Knowledge", "KnowledgeExtractor"]
+__all__ = ["Knowledge", "KnowledgeExtractor", "KnowledgeNormalizer"]
