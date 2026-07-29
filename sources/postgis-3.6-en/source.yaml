@@ -1,0 +1,9 @@
+id: postgis-3.6-en
+title: PostGIS 3.6 Developer Manual
+origin: https://postgis.net
+version: '3.6'
+license: Creative Commons Attribution-Share Alike 3.0
+checksum: 458b1faf11b14e57637a55dec5c2d7552273664f0e31c32ae9b475a165eb9ba6
+status: verified
+captured_at: '2026-07-29T00:14:46.101219Z'
+verified_at: '2026-07-29T00:14:46.109297Z'
