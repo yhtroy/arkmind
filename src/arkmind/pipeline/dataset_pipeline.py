@@ -2,8 +2,9 @@
 
 Runs, in fixed order: PdfSourceProvider -> FragmentExtractor ->
 KnowledgeExtractor -> KnowledgeTaxonomy -> KnowledgeNormalizer ->
-ProvenanceBuilder. Pure orchestration: no new business logic, and module
-exceptions propagate unchanged (the pipeline catches nothing).
+KnowledgeDeduplicator -> ProvenanceBuilder. Pure orchestration: no new
+business logic, and module exceptions propagate unchanged (the pipeline
+catches nothing).
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from arkmind.fragment.extractor import FragmentExtractor
+from arkmind.knowledge.deduplicator import KnowledgeDeduplicator
 from arkmind.knowledge.extractor import KnowledgeExtractor
 from arkmind.knowledge.normalizer import KnowledgeNormalizer
 from arkmind.knowledge.taxonomy import KnowledgeTaxonomy
@@ -28,6 +30,7 @@ class DatasetPipeline:
         knowledge = KnowledgeExtractor().extract(fragments, source_id)
         knowledge = KnowledgeTaxonomy().classify(knowledge)
         knowledge = KnowledgeNormalizer().normalize(knowledge)
+        knowledge = KnowledgeDeduplicator().deduplicate(knowledge)
         provenance = ProvenanceBuilder().build(knowledge)
         return DatasetResult(
             source_id=source_id,
