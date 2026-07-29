@@ -14,3 +14,4 @@ class Knowledge(BaseModel):
     text: str
     kind: str | None = None
     normalized: str | None = None
+    duplicate: bool = False
