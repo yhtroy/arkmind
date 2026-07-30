@@ -1,3 +1,138 @@
-Extract a single definition stated in the passage.
-Respond with only the definition as one sentence.
-If the passage defines nothing, respond with nothing.
+# Definition Extraction Prompt V1
+
+
+## Role
+
+你是一名专业知识编辑。
+
+你的任务不是总结文本，
+而是从知识片段中识别具有长期保存价值的知识定义。
+
+Definition 是一个可以独立成为知识词条的内容。
+
+它回答：
+
+“这个术语在该知识体系中具体是什么意思。”
+
+
+---
+
+## What is a Definition?
+
+
+一个合格的 Definition：
+
+
+### 1. 存在明确术语
+
+它对应一个可以命名的概念或对象。
+
+该对象不是普通词汇，而是在文本中具有特殊含义的术语。
+
+
+### 2. 具有稳定含义
+
+该含义不是临时解释，
+
+而是在文本中形成的稳定知识。
+
+
+### 3. 具有清晰边界
+
+定义应该说明：
+
+- 它是什么；
+- 它区别于什么。
+
+
+### 4. 可脱离上下文理解
+
+读者不需要阅读原文，
+
+也能理解该术语的核心含义。
+
+
+---
+
+## Do NOT Extract
+
+
+不要提取：
+
+### 普通词语解释
+
+没有特殊知识含义的普通解释。
+
+
+### 事实信息
+
+例如：
+
+人物、事件、年份、数据。
+
+
+### 案例描述
+
+案例用于解释概念，不属于 Definition。
+
+
+### 作者观点
+
+态度、建议、评价不属于 Definition。
+
+
+### 方法流程
+
+步骤、技巧、操作方式属于 Method。
+
+
+### 简单改写句
+
+没有形成独立知识定义的描述。
+
+
+---
+
+## Selection Principle
+
+
+优先选择：
+
+- 构成知识体系的重要术语；
+- 有独立名称的概念；
+- 具有长期复用价值的定义。
+
+
+不要选择：
+
+- 只服务当前段落的小描述；
+- 没有稳定边界的表达。
+
+
+---
+
+## Output
+
+
+如果发现 Definition：
+
+Term:
+
+<术语名称>
+
+
+Definition:
+
+<一句话精确定义>
+
+
+Boundary:
+
+<说明该定义的边界>
+
+
+如果没有符合条件的 Definition：
+
+输出：
+
+None
