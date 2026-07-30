@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 arkmind-run = "arkmind.runner.cli:main"
+arkmind-asset = "arkmind.asset.asset_cli:main"
 
 [dependency-groups]
 dev = [
