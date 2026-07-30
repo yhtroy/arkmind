@@ -1,4 +1,4 @@
-# Concept Extraction Prompt V1.5
+# Concept Extraction Prompt V1.6
 
 
 ## Role
@@ -134,6 +134,23 @@ Concept 是一种思想工具。
 
 ## Output
 
+
+### 粒度约束
+
+最多提取 1 个 Concept。
+
+如果多个概念同时出现，
+
+选择解释力最高、最核心的一个。
+
+不要输出列表。
+
+不要输出多个 Concept。
+
+不要使用 ---
+
+
+### 输出格式
 
 如果发现 Concept：
 
