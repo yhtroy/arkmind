@@ -17,6 +17,7 @@ from pathlib import Path
 
 from arkmind.asset.extractor import AssetExtractor
 from arkmind.knowledge.models import Knowledge
+from arkmind.runtime import FakeLLMClient, PromptLoader
 
 
 def main() -> None:
@@ -28,7 +29,7 @@ def main() -> None:
     raw = json.loads(Path(args.input).read_text(encoding="utf-8"))
     knowledge = [Knowledge.model_validate(item) for item in raw]
 
-    assets = AssetExtractor().extract(knowledge)
+    assets = AssetExtractor(loader=PromptLoader(), llm=FakeLLMClient()).extract(knowledge)
 
     Path(args.output).write_text(
         json.dumps(
