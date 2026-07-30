@@ -1,4 +1,9 @@
-"""Tests for the arkmind-asset CLI (TASK-002.5)."""
+"""Tests for the arkmind-asset CLI (TASK-002.5, wired in TASK-004).
+
+These exercise the full chain: read Knowledge -> PromptLoader (real prompts/) ->
+FakeLLMClient -> Asset -> asset.json. FakeLLMClient echoes the Knowledge text, so
+each Knowledge produces one Asset per type.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +24,7 @@ def _knowledge_item(knowledge_id: str = "k1") -> dict[str, object]:
     }
 
 
-def test_main_reads_knowledge_and_writes_assets(
+def test_main_reads_knowledge_and_writes_typed_assets(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     input_path = tmp_path / "input.json"
@@ -29,7 +34,10 @@ def test_main_reads_knowledge_and_writes_assets(
     monkeypatch.setattr("sys.argv", ["arkmind-asset", str(input_path), str(output_path)])
     asset_cli.main()
 
-    assert json.loads(output_path.read_text(encoding="utf-8")) == []
+    result = json.loads(output_path.read_text(encoding="utf-8"))
+    assert {r["type"] for r in result} == {"CONCEPT", "DEFINITION", "QUOTE"}
+    assert all(r["content"] == "long-term thinking" for r in result)
+    assert all(r["book_id"] == "book-1" for r in result)
 
 
 def test_main_handles_empty_input(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
