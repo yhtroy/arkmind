@@ -22,3 +22,6 @@ data/
 # Source 登记：只保留 source.yaml，冻结原件（original）不入库（只留指纹 checksum）
 sources/*/original
 !sources/*/source.yaml
+
+# Pipeline 生成物（knowledge/provenance/summary 等）不入库，可由源码复现
+sources/*/output/
