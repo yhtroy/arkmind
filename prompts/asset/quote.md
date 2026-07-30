@@ -1,4 +1,4 @@
-# Quote Extraction Prompt V1
+# Quote Extraction Prompt V1.1
 
 
 ## Role
@@ -104,23 +104,33 @@ Quote 是一个能够脱离原文上下文，
 
 ---
 
-## Output
+## Output Constraints
 
 
-如果发现 Quote：
+### 单条约束
 
-Quote:
+你只能输出一条 Quote。
 
-<原始表达>
+不要输出多个候选。
+
+不要输出列表。
+
+不要使用分隔符。
 
 
-Why Valuable:
+### 禁止解释
 
-<一句话说明为什么值得保存>
+不要解释为什么选择这句话。
+
+不要添加引言。
+
+不要输出分析过程。
 
 
-如果没有符合条件的 Quote：
+### 输出边界
 
-输出：
+输出必须直接以引用原文开始。
+
+如果没有值得保存的金句，只输出：
 
 None
