@@ -13,6 +13,8 @@ from pathlib import Path
 import pytest
 
 from arkmind.asset import asset_cli
+from arkmind.asset.asset_cli import _build_llm
+from arkmind.runtime import FakeLLMClient, OpenAICompatibleClient
 
 
 def _knowledge_item(knowledge_id: str = "k1") -> dict[str, object]:
@@ -49,3 +51,18 @@ def test_main_handles_empty_input(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     asset_cli.main()
 
     assert json.loads(output_path.read_text(encoding="utf-8")) == []
+
+
+def test_build_llm_defaults_to_fake() -> None:
+    assert isinstance(_build_llm("fake", None), FakeLLMClient)
+
+
+def test_build_llm_real_requires_model() -> None:
+    with pytest.raises(SystemExit):
+        _build_llm("real", None)
+
+
+def test_build_llm_real_builds_openai_compatible(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ARKMIND_LLM_API_KEY", "sk-test")
+    monkeypatch.delenv("ARKMIND_LLM_BASE_URL", raising=False)
+    assert isinstance(_build_llm("real", "gpt-x"), OpenAICompatibleClient)
