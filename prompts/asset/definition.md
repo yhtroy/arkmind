@@ -1,4 +1,4 @@
-# Definition Extraction Prompt V1
+# Definition Extraction Prompt V1.1
 
 
 ## Role
@@ -113,6 +113,21 @@ Definition 是一个可以独立成为知识词条的内容。
 
 ## Output
 
+
+### 粒度约束
+
+只能定义一个术语。
+
+不要合并多个术语。
+
+不要输出概念集合。
+
+如果多个术语同时出现，
+
+选择最核心、边界最清晰的一个。
+
+
+### 输出格式
 
 如果发现 Definition：
 
