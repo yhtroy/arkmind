@@ -1,0 +1,61 @@
+{
+  "benchmark_id": "prompt-lab/black-swan",
+  "purpose": "Regression baseline for the Asset Factory prompts. Re-run whenever a prompt changes to quantify whether the prompt improves or merely happens to pass.",
+  "book": {
+    "title": "黑天鹅（干货版）",
+    "source_id": "black-swan-cn"
+  },
+  "provider": {
+    "type": "openai-compatible",
+    "vendor": "DeepSeek",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-v4-pro"
+  },
+  "prompt_versions": {
+    "concept": "V1.6",
+    "definition": "V1.1",
+    "quote": "V1.1",
+    "frozen_at_commit": "ec3b80d",
+    "state": "Frozen"
+  },
+  "input": {
+    "knowledge_count": 73,
+    "note": "Book full text is copyrighted and MUST NOT be committed to Git. The data files below live in private storage only; this manifest pins their sha256 so a benchmark run can verify it used the exact same input."
+  },
+  "private_data_files": [
+    {
+      "name": "knowledge.json",
+      "role": "input",
+      "bytes": 181195,
+      "sha256": "a1c7ea0ec06c8463345807947ac0994e32f35cffb383b2aedd12e058d0a6e40b"
+    },
+    {
+      "name": "asset-full.json",
+      "role": "output-baseline",
+      "bytes": 111641,
+      "sha256": "3b250bd69949b20a97ab0d1fa27dd1a2a0c671abff68b6807b2b0dcfea95ad7a"
+    }
+  ],
+  "expected_metrics": {
+    "asset_count": 219,
+    "by_type": {
+      "CONCEPT": { "total": 73, "valid": 68, "none": 5, "none_rate": 0.07 },
+      "DEFINITION": { "total": 73, "valid": 45, "none": 28, "none_rate": 0.38 },
+      "QUOTE": { "total": 73, "valid": 68, "none": 5, "none_rate": 0.07 }
+    },
+    "output_contract_violations": 0,
+    "gold_set_hit": {
+      "concept": { "hit": 5, "total": 5 },
+      "definition": { "hit": 3, "total": 3 },
+      "quote": { "hit": 1, "total": 3 }
+    },
+    "concept_duplicate_rate": 0.31,
+    "concept_distinct": 47
+  },
+  "references": {
+    "gold_set": "docs/prompt-lab/gold-set.md",
+    "report": "docs/prompt-lab/PromptLab_Report_V1.md"
+  },
+  "recorded_at": "2026-07-27",
+  "task": "TASK-VALIDATION-003"
+}

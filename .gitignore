@@ -25,3 +25,7 @@ sources/*/original
 
 # Pipeline 生成物（knowledge/provenance/summary 等）不入库，可由源码复现
 sources/*/output/
+
+# Benchmark：书正文与原文摘录永不入库，只保留 manifest.json / README.md（放私有存储）
+benchmarks/**/knowledge.json
+benchmarks/**/asset*.json
