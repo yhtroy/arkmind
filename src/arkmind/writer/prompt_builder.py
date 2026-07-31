@@ -28,10 +28,16 @@ class PromptBuilder:
         self._resolver = resolver if resolver is not None else AssetResolver()
 
     def build(self, topics: list[Topic], assets: AssetRepository) -> str:
-        instruction = self._loader.load("writer")
+        return f"{self.instruction()}\n\n# 知识主题（Context）\n\n{self.context(topics, assets)}"
+
+    def instruction(self) -> str:
+        """Return the externalised writer instruction (LLM *system* message)."""
+        return self._loader.load("writer")
+
+    def context(self, topics: list[Topic], assets: AssetRepository) -> str:
+        """Return the loss-less Topic Context (LLM *user* message)."""
         blocks = [self._render(self._resolver.resolve(topic, assets)) for topic in topics]
-        context = "\n\n".join(blocks)
-        return f"{instruction}\n\n# 知识主题（Context）\n\n{context}"
+        return "\n\n".join(blocks)
 
     def _render(self, topic: ResolvedTopic) -> str:
         lines = [f"## {topic.title}", ""]
