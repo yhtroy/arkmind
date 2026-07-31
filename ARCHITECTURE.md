@@ -1,87 +1,321 @@
-# ARCHITECTURE
+# ArkMind Product Architecture V2.0
 
-系统只有五层。不讨论代码，不讨论框架。
+## Notion-Centric Publishing Pipeline (Frozen)
+
+- **Status:** APPROVED
+- **Owner:** Chief Architect
+- **Date:** 2026-07-31
+
+> 本文件由 Chief Architect 冻结批准。V2.0 取代先前的架构版本（V1 Renderer 链路与更早的五层模型）。
+
+---
+
+## 1. Purpose
+
+ArkMind 的目标不是生成 Markdown 文件。
+
+ArkMind 的目标是持续沉淀一个可运营、可检索、可复用、可持续发布的知识库。
+
+因此，原先的：
 
 ```
-Source      →  原始输入（今天：得到 PDF）
-Knowledge   →  结构化的原始事实（系统的资产，唯一不可丢的东西）
-Reasoning   →  在 Knowledge 之上做推理（可以随时换模型、换方法重跑）
-Content     →  输出（今天：文章草稿；经作者 Approve 后发布）
-Feedback    →  作者与读者的反馈，回流修正 Knowledge 与 Reasoning
+Markdown
+    ↓
+人为中间产物
 ```
 
-## 各层职责与边界
+调整为：
 
-### 1. Source
-
-- 职责：接收原始输入，保留原件，解析出可用文本。
-- 边界：只做「拿进来、拆开」，不做任何理解和总结。
-- **输入不是 PDF，是 Source。** 本层对上暴露统一抽象 `SourceProvider`，PDF 只是第一个实现：
-
-```python
-class SourceProvider:
-    def load(self) -> SourceDocument:
-        ...
-
-# PdfSourceProvider / ImageSourceProvider / MarkdownSourceProvider / WebSourceProvider ...
+```
+Book
+    ↓
+Source
+    ↓
+Asset
+    ↓
+Topic
+    ↓
+Writer（唯一 AI）
+    ↓
+Article
+    ↓
+Publisher(Notion)
 ```
 
-- 新增一种输入（图片、Markdown、EPUB、网页、RSS、论文、字幕……）= 新增一个 Provider 实现，不改下游任何一层。但遵守 YAGNI（ADR-0002）：现在只实现 `PdfSourceProvider`。
-- **每个 Source 先登记，再解析。** 磁盘布局固定为（M1 不用 `data/`，因为还没有 Source 抽象）：
+- Notion 成为唯一正式发布介质。
+- Markdown 不再作为产品输出。
+
+---
+
+## 2. Frozen Pipeline
+
+```
+Book
+    │
+    ▼
+Source
+    │
+    ▼
+Asset
+    │
+    ▼
+Topic
+    │
+    ▼
+Writer (LLM)
+    │
+    ▼
+Article
+    │
+    ▼
+Publisher
+    │
+    ▼
+Notion Database
+```
+
+**Frozen Rules：**
+
+- Source 永远负责一本书
+- Asset 永远负责知识提炼
+- Topic 永远负责聚合
+- Writer 永远负责文章生成
+- Publisher 永远负责输出
+
+任何模块不得跨层。
+
+---
+
+## 3. Writer Output Contract
+
+Writer 不再输出 `article.md`。
+
+Writer 输出 `Article`。
+
+数据模型：
 
 ```text
-sources/
-    <source-id>/
-        source.yaml     # 来源登记（入库）
-        original.pdf     # 原件（不入库，只留指纹）
+Article
+
+article_id
+title
+content
+created_at
+metadata
 ```
 
-`source.yaml` 回答“这份 Source 到底来自哪里”：
+- `content` 保存完整 Markdown。
+- Writer 不负责平台。
+- Writer 不负责数据库。
+- Writer 不负责发布。
 
-```yaml
-id: sqlite-create-table
-type: web                 # pdf / markdown / image / web ...
-title: SQLite CREATE TABLE
-author: SQLite
-language: en
-license: public-domain
-checksum:                 # 原件指纹
-version: sqlite-3.46.x    # 来源版本（M1 锁定，完成前不升级）
-provider:                 # 对应哪个 SourceProvider
-```
+---
 
-> 登记信息落到 DATA_MODEL 的 `source` 表（provider / license / version / file_hash），保证每一条 Knowledge 都能逆着来源链追回原件（见 [docs/canon/provenance.md](docs/canon/provenance.md)）；每条 Knowledge 还记录 `extractor`（human / ocr-vN / pdf-parser-vN）以支持可追责。
+## 4. Publisher Responsibility
 
-### 2. Knowledge
+Publisher 是唯一输出层。
 
-- 职责：保存**原始事实**及其出处（详见 [DATA_MODEL.md](DATA_MODEL.md)）。
-- 边界：**只存事实，不存 AI 结论。** AI 的总结、观点属于 Reasoning 层的产物，永不进入本层。
-- **铁律：Knowledge 层禁止调用 LLM。** 本层只允许三种操作：Extraction（提取）、Normalization（规范化）、Validation（校验）。不推理、不总结、不扩写、不生成。一旦违反，Knowledge 被污染，模型升级时全部作废。
-- 任何数据写入本层前必须经作者 Approve（见 ADR-0004）。
-- 这是整个系统唯一需要长期守护的层。
-
-### 3. Reasoning
-
-- 职责：基于 Knowledge 做推理、总结、生成观点。**所有 AI 理解都住在这一层**，它们是派生数据：可整体删除、可用新模型重建（建模在 M2 进行，不进 DATA_MODEL.md）。
-- 边界：所有产物必须标注「由哪些 Knowledge、哪个模型、什么时候推理出来的」，并且**可以随时重新推理**。
-- 模型接入统一走 LLM Adapter（LiteLLM）。模型是插件，不是核心（见 ADR-0001）。
-
-### 4. Content
-
-- 职责：把 Reasoning 的产物组织成面向渠道的内容（知乎、小红书……）。
-- 边界：任何内容进入「已发布 / 已入库」状态前，必须经过作者 Approve。
-
-### 5. Feedback
-
-- 职责：收集作者修改意见与外部反馈，作为下一轮 Reasoning 的输入。
-- M3 之前只留接口位置，不实现（YAGNI，见 ADR-0002）。
-
-## 依赖方向
-
-只允许自上而下单向依赖：
+职责只有：
 
 ```
-Source → Knowledge → Reasoning → Content → Feedback
+Article
+      ↓
+Publish
+      ↓
+Notion
 ```
 
-Feedback 回流是数据回流，不是代码依赖。任何反向的代码依赖都是架构腐化信号。
+禁止：
+
+- AI
+- 改写
+- 润色
+- 摘要
+- SEO
+- 标签生成
+- 标题优化
+
+Publisher 永远只是 Adapter。
+
+---
+
+## 5. Notion Database
+
+数据库：`Articles`
+
+字段冻结如下：
+
+| 字段            | 类型          |
+| -------------- | ------------ |
+| Title          | Title        |
+| Book           | Text         |
+| Author         | Text         |
+| Content        | Rich Text    |
+| Status         | Select       |
+| Publish Target | Multi Select |
+| Created Time   | Date         |
+| Updated Time   | Date         |
+| Word Count     | Number       |
+| Topic Count    | Number       |
+| Asset Count    | Number       |
+
+**冻结。** 以后允许新增字段。禁止删除已有字段。
+
+---
+
+## 6. Publish Target
+
+Publish Target 不代表已经发布。它只是"未来计划同步的平台"。
+
+例如：知乎、头条、百家、公众号、Notion Only。
+
+目前 MVP：
+
+```
+Notion Only
+```
+
+以后扩展：
+
+```
+Notion
+      │
+      ├── Zhihu
+      ├── Toutiao
+      ├── Xiaohongshu
+      └── WeChat
+```
+
+Publisher 不需要改 Writer。
+
+---
+
+## 7. Status Workflow
+
+Status：
+
+```
+Draft
+Review
+Published
+Archived
+```
+
+生命周期：
+
+```
+Writer
+   ↓
+Draft
+   ↓
+人工 Review
+   ↓
+Published
+   ↓
+Archive
+```
+
+冻结。
+
+---
+
+## 8. Notion as Single Source of Truth
+
+生成后的文章，唯一正式版本：
+
+```
+Notion
+```
+
+Git 不保存 `article.md`。
+
+Git 保存：代码、Prompt、RFC、Architecture。
+
+内容资产全部沉淀在 Notion。
+
+---
+
+## 9. Future Extension
+
+未来：
+
+```
+Article
+   ↓
+Publisher
+   ↓
+Notion
+   ↓
+Platform Publisher
+   ↓
+知乎 → 头条 → 公众号
+```
+
+新增平台：只新增 Publisher Adapter。Writer 完全不用修改。
+
+---
+
+## 10. Module Boundary
+
+- Writer：`Topic → Article`
+- Publisher：`Article → Notion`
+- Notion：`Storage`
+- 平台：`Distribution`
+
+四层永久隔离。
+
+---
+
+## 11. Project Structure
+
+```
+arkmind/
+    writer/
+    publisher/
+    notion/
+    runtime/
+    asset/
+    topic/
+```
+
+- Publisher 为新模块。
+- Notion Client 属于 Publisher 内部。
+- Writer 永不依赖 Notion。
+
+---
+
+## 12. Milestone
+
+| 里程碑 | 范围                    | 状态   |
+| ----- | ---------------------- | ----- |
+| M1    | Book → Source          | ✅    |
+| M2    | Source → Asset         | ✅    |
+| M3    | Asset → Topic          | ✅    |
+| M4    | Topic → Writer         | ✅    |
+| M5    | Writer → Notion Publisher | NEXT |
+
+---
+
+## 13. Frozen Decision
+
+最终产品架构冻结：
+
+```
+Book
+    ↓
+Source
+    ↓
+Asset
+    ↓
+Topic
+    ↓
+Writer (唯一 AI)
+    ↓
+Publisher
+    ↓
+Notion Database
+```
+
+- 所有文章首先进入 Notion。
+- Markdown 文件退出产品架构，仅可作为调试产物。
+- Notion 成为 ArkMind 唯一内容中心（Single Source of Truth）。
