@@ -20,6 +20,7 @@ arkmind-run = "arkmind.runner.cli:main"
 arkmind-asset = "arkmind.asset.asset_cli:main"
 arkmind-topic = "arkmind.topic.topic_cli:main"
 arkmind-writer = "arkmind.writer.writer_cli:main"
+arkmind-renderer = "arkmind.renderer.renderer_cli:main"
 
 [dependency-groups]
 dev = [
