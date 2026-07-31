@@ -2,16 +2,18 @@
 
 Usage::
 
-    arkmind-writer <topic.json> <asset.json> <article.md>
+    arkmind-writer <topic.json> <asset.json> <article.md> [--provider {fake,real}] [--model NAME]
 
 Reads a Topic JSON array (``arkmind-topic``) plus an Asset JSON array
 (``arkmind-asset``), builds an in-memory Asset repository so the Writer can
 resolve each Topic's asset_id references to full content, then drives the Writer
 to produce a single Markdown article.
 
-The Writer uses the offline :class:`FakeLLMClient` by default, so this command
-runs without an API key or network. Real-provider selection lands in Task-004.
-No business logic lives here.
+The provider defaults to ``fake`` (offline, deterministic) so tests and CI never
+touch the network or consume API credits. ``--provider real`` selects the
+OpenAI-compatible client, configured via ``ARKMIND_LLM_API_KEY`` /
+``ARKMIND_LLM_BASE_URL`` and the ``--model`` argument — the same Runtime style as
+``arkmind-asset``. No business logic lives here.
 """
 
 from __future__ import annotations
@@ -21,8 +23,22 @@ import json
 from pathlib import Path
 
 from arkmind.asset import Asset, AssetRepository
+from arkmind.runtime import (
+    FakeLLMClient,
+    LLMClient,
+    ModelConfig,
+    OpenAICompatibleClient,
+)
 from arkmind.topic import Topic
 from arkmind.writer.writer_service import WriterService
+
+
+def _build_llm(provider: str, model: str | None) -> LLMClient:
+    if provider == "real":
+        if not model:
+            raise SystemExit("--model is required when --provider real")
+        return OpenAICompatibleClient.from_env(ModelConfig(model=model))
+    return FakeLLMClient()
 
 
 def _load_assets(path: Path) -> AssetRepository:
@@ -37,12 +53,15 @@ def main() -> None:
     parser.add_argument("topics")
     parser.add_argument("assets")
     parser.add_argument("output")
+    parser.add_argument("--provider", choices=["fake", "real"], default="fake")
+    parser.add_argument("--model", default=None)
     args = parser.parse_args()
 
     raw = json.loads(Path(args.topics).read_text(encoding="utf-8"))
     topics = [Topic.model_validate(item) for item in raw]
     assets = _load_assets(Path(args.assets))
 
-    article = WriterService().write(topics, assets)
+    llm = _build_llm(args.provider, args.model)
+    article = WriterService(llm=llm).write(topics, assets)
 
     Path(args.output).write_text(f"{article.markdown}\n", encoding="utf-8")

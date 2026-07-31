@@ -11,7 +11,9 @@ from pathlib import Path
 
 import pytest
 
+from arkmind.runtime import FakeLLMClient, OpenAICompatibleClient
 from arkmind.writer import writer_cli
+from arkmind.writer.writer_cli import _build_llm
 
 
 def _topic(topic_id: str, title: str, concepts: list[str]) -> dict[str, object]:
@@ -76,3 +78,18 @@ def test_main_handles_empty_input(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     writer_cli.main()
 
     assert output_path.exists()
+
+
+def test_build_llm_defaults_to_fake() -> None:
+    assert isinstance(_build_llm("fake", None), FakeLLMClient)
+
+
+def test_build_llm_real_requires_model() -> None:
+    with pytest.raises(SystemExit):
+        _build_llm("real", None)
+
+
+def test_build_llm_real_builds_openai_compatible(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ARKMIND_LLM_API_KEY", "sk-test")
+    monkeypatch.delenv("ARKMIND_LLM_BASE_URL", raising=False)
+    assert isinstance(_build_llm("real", "deepseek-v4-pro"), OpenAICompatibleClient)
