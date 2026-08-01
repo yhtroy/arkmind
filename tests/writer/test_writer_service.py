@@ -12,7 +12,6 @@ from datetime import UTC, datetime
 import pytest
 
 from arkmind.asset import Asset, AssetRepository, AssetType
-from arkmind.notion import MissingNotionConfigError
 from arkmind.runtime import FakeLLMClient, LLMClient
 from arkmind.topic import Topic
 from arkmind.writer import WriterService
@@ -114,14 +113,6 @@ def test_write_with_fake_llm_stores_verbatim() -> None:
 def test_write_raises_when_markdown_lacks_h1() -> None:
     with pytest.raises(ValueError, match="Missing H1 title."):
         WriterService(
-            llm=FakeLLMClient(response="无标题正文"),
             notion=_RecordingNotion(),
+            llm=FakeLLMClient(response="无标题正文"),
         ).write([], AssetRepository())
-
-
-def test_default_notion_requires_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("ARKMIND_NOTION_TOKEN", raising=False)
-    monkeypatch.delenv("ARKMIND_NOTION_DATABASE_ID", raising=False)
-
-    with pytest.raises(MissingNotionConfigError):
-        WriterService()

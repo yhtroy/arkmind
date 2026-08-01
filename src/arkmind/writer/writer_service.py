@@ -10,11 +10,11 @@ system message and ``text`` the user message. Accordingly the externalised write
 instruction is passed as ``prompt`` and the loss-less Topic Context as ``text``.
 
 The service depends on the abstract :class:`LLMClient` and on :class:`NotionClient`;
-it never references a concrete provider. The default LLM client is
-:class:`FakeLLMClient`, so the whole service stays offline until a real provider
-is injected. The default Notion client is built from the environment
-(``ARKMIND_NOTION_*``), because storing to Notion is the product behaviour; tests
-inject an offline stand-in.
+it never references a concrete provider. Dependencies are provided by the
+caller (the CLI acts as composition root) — the service never decides where its
+clients come from. The default LLM client is :class:`FakeLLMClient`, so the
+whole service stays offline until a real provider is injected; the Notion
+client is always injected (built from ``ARKMIND_NOTION_*`` at the call site).
 
 The LLM response is a complete Markdown document (title included) and is stored
 verbatim as the page content — the Writer never reshapes it. The page title is
@@ -40,13 +40,13 @@ class WriterService:
 
     def __init__(
         self,
+        notion: NotionClient,
         llm: LLMClient | None = None,
         prompt_builder: PromptBuilder | None = None,
-        notion: NotionClient | None = None,
     ) -> None:
+        self._notion = notion
         self._llm = llm if llm is not None else FakeLLMClient()
         self._prompt_builder = prompt_builder if prompt_builder is not None else PromptBuilder()
-        self._notion = notion if notion is not None else NotionClient.from_env()
 
     def build_prompt(self, topics: list[Topic], assets: AssetRepository) -> str:
         return self._prompt_builder.build(topics, assets)

@@ -25,6 +25,7 @@ import json
 from pathlib import Path
 
 from arkmind.asset import Asset, AssetRepository
+from arkmind.notion import NotionClient
 from arkmind.runtime import (
     FakeLLMClient,
     LLMClient,
@@ -63,7 +64,7 @@ def main() -> None:
     assets = _load_assets(Path(args.assets))
 
     llm = _build_llm(args.provider, args.model)
-    page_id = WriterService(llm=llm).write(topics, assets)
+    page_id = WriterService(notion=NotionClient.from_env(), llm=llm).write(topics, assets)
 
     print("Created Notion Page")
     print(f"Page ID: {page_id}")
