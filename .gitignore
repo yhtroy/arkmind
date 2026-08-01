@@ -29,3 +29,8 @@ sources/*/output/
 # Benchmarkï¼šä¹¦æ­£æ–‡ä¸åŸæ–‡æ‘˜å½•æ°¸ä¸å…¥åº“ï¼Œåªä¿ç•™ manifest.json / README.mdï¼ˆæ”¾ç§æœ‰å­˜å‚¨ï¼‰
 benchmarks/**/knowledge.json
 benchmarks/**/asset*.json
+
+# M5.5 production£ºÖ»±£Áô notes.md£¨ÈË¹¤±Ê¼Ç£©Èë¿â£»transcript£¨Ô­ÎÄÌáÈ¡£©ÓëÉú³ÉµÄ topic/asset JSON ²»Èë¿â£¨¿ÉÓÉ prepare.py ¸´ÏÖ£©
+production/**/transcript.md
+production/**/topic.json
+production/**/asset.json
