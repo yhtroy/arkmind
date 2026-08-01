@@ -1,7 +1,8 @@
-"""Tests for the arkmind-writer CLI (M3 Writer, Task-003).
+"""Tests for the arkmind-writer CLI (M3 Writer, M5 Task-003).
 
 Exercise the chain: read topic.json + asset.json -> WriterService (offline
-FakeLLM) -> article.md, plus the empty-input edge case. No network or API key.
+clients) -> Notion page id, plus the empty-input edge case. No network or API
+key.
 """
 
 from __future__ import annotations
@@ -14,6 +15,24 @@ import pytest
 from arkmind.runtime import FakeLLMClient, OpenAICompatibleClient
 from arkmind.writer import writer_cli
 from arkmind.writer.writer_cli import _build_llm
+
+
+class _CannedLLM:
+    """Offline stand-in for FakeLLMClient returning an H1-bearing response."""
+
+    def generate(self, prompt: str, text: str) -> str:
+        return "# 黑天鹅\n\n极不可能却影响巨大的事件"
+
+
+class _RecordingNotion:
+    """Offline stand-in for NotionClient — records without any network."""
+
+    def __init__(self) -> None:
+        self.stored: list[tuple[str, str]] = []
+
+    def create_page(self, title: str, content: str) -> str:
+        self.stored.append((title, content))
+        return "page_001"
 
 
 def _topic(topic_id: str, title: str, concepts: list[str]) -> dict[str, object]:
@@ -37,12 +56,13 @@ def _asset(asset_id: str, content: str) -> dict[str, object]:
     }
 
 
-def test_main_reads_topics_and_assets_and_writes_markdown(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def test_main_reads_topics_and_assets_and_prints_page_id(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     topics_path = tmp_path / "topic.json"
     assets_path = tmp_path / "asset.json"
-    output_path = tmp_path / "article.md"
     topics_path.write_text(
         json.dumps([_topic("topic-001", "黑天鹅", ["c1"])]),
         encoding="utf-8",
@@ -52,32 +72,48 @@ def test_main_reads_topics_and_assets_and_writes_markdown(
         encoding="utf-8",
     )
 
+    notion = _RecordingNotion()
+    monkeypatch.setattr(writer_cli, "FakeLLMClient", _CannedLLM)
+    monkeypatch.setattr(
+        "arkmind.notion.notion_client.NotionClient.from_env",
+        classmethod(lambda cls: notion),
+    )
     monkeypatch.setattr(
         "sys.argv",
-        ["arkmind-writer", str(topics_path), str(assets_path), str(output_path)],
+        ["arkmind-writer", str(topics_path), str(assets_path)],
     )
     writer_cli.main()
 
-    article = output_path.read_text(encoding="utf-8")
-    # FakeLLM echoes the Context, so the resolved asset content lands in article.md.
-    assert "黑天鹅" in article
-    assert "极不可能却影响巨大的事件" in article
+    out = capsys.readouterr().out
+    assert "Created Notion Page" in out
+    assert "Page ID: page_001" in out
+    # The canned response (with H1) lands in Notion verbatim; no file is written.
+    assert notion.stored == [("黑天鹅", "# 黑天鹅\n\n极不可能却影响巨大的事件")]
 
 
-def test_main_handles_empty_input(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_handles_empty_input(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     topics_path = tmp_path / "topic.json"
     assets_path = tmp_path / "asset.json"
-    output_path = tmp_path / "article.md"
     topics_path.write_text(json.dumps([]), encoding="utf-8")
     assets_path.write_text(json.dumps([]), encoding="utf-8")
 
+    notion = _RecordingNotion()
+    monkeypatch.setattr(writer_cli, "FakeLLMClient", _CannedLLM)
+    monkeypatch.setattr(
+        "arkmind.notion.notion_client.NotionClient.from_env",
+        classmethod(lambda cls: notion),
+    )
     monkeypatch.setattr(
         "sys.argv",
-        ["arkmind-writer", str(topics_path), str(assets_path), str(output_path)],
+        ["arkmind-writer", str(topics_path), str(assets_path)],
     )
     writer_cli.main()
 
-    assert output_path.exists()
+    assert "Page ID: page_001" in capsys.readouterr().out
 
 
 def test_build_llm_defaults_to_fake() -> None:
