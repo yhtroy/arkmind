@@ -1,62 +1,68 @@
-"""Tests for the NotionClient mapping and config (M5 Publisher, Task-001).
+"""Tests for NotionClient (M5, Task-003).
 
-These are offline tests: only the pure ``build_page`` mapping and ``from_env``
-config loading are exercised. The network ``publish`` call is never invoked.
+Offline tests: the pure ``build_page`` mapping and ``from_env`` config loading
+are exercised directly; the network ``create_page`` call is stubbed via
+``urllib.request.urlopen`` to verify the returned page id.
 """
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from typing import Self
 
 import pytest
 
-from arkmind.publisher import Article, ArticleMetadata, MissingNotionConfigError, NotionClient
+from arkmind.notion import MissingNotionConfigError, NotionClient
 
 
-def _article(content: str = "Body", *, book: str = "The Black Swan") -> Article:
-    return Article(
-        id="a1",
-        title="On Randomness",
-        content=content,
-        metadata=ArticleMetadata(
-            book=book,
-            author="ArkMind",
-            created_at=datetime(2026, 7, 31, 12, 0, 0, tzinfo=UTC),
-            word_count=1200,
-            topic_count=3,
-            asset_count=8,
-        ),
-    )
+class _FakeResponse:
+    """Context-manager response stand-in returning canned JSON bytes."""
+
+    def __init__(self, body: bytes) -> None:
+        self._body = body
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self._body
 
 
-def test_build_page_maps_all_frozen_fields() -> None:
+def test_build_page_maps_title_and_content() -> None:
     client = NotionClient(token="secret", database_id="db123")
 
-    page = client.build_page(_article())
+    page = client.build_page("On Randomness", "Body")
 
     assert page["parent"] == {"database_id": "db123"}
     props = page["properties"]
     assert isinstance(props, dict)
     assert props["Title"] == {"title": [{"text": {"content": "On Randomness"}}]}
     assert props["Content"] == {"rich_text": [{"text": {"content": "Body"}}]}
-    assert props["Book"] == {"rich_text": [{"text": {"content": "The Black Swan"}}]}
-    assert props["Author"] == {"rich_text": [{"text": {"content": "ArkMind"}}]}
-    assert props["Created Time"] == {"date": {"start": "2026-07-31T12:00:00+00:00"}}
-    assert props["Word Count"] == {"number": 1200}
-    assert props["Topic Count"] == {"number": 3}
-    assert props["Asset Count"] == {"number": 8}
 
 
 def test_build_page_chunks_content_over_rich_text_limit() -> None:
     client = NotionClient(token="secret", database_id="db123")
     long_content = "x" * 4500  # 2000 + 2000 + 500
 
-    page = client.build_page(_article(content=long_content))
+    page = client.build_page("T", long_content)
 
     chunks = page["properties"]["Content"]["rich_text"]  # type: ignore[index]
     lengths = [len(chunk["text"]["content"]) for chunk in chunks]
     assert lengths == [2000, 2000, 500]
     assert "".join(chunk["text"]["content"] for chunk in chunks) == long_content
+
+
+def test_create_page_returns_page_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _fake_urlopen(_request: object) -> _FakeResponse:
+        return _FakeResponse(b'{"id":"page_123","object":"page"}')
+
+    monkeypatch.setattr("urllib.request.urlopen", _fake_urlopen)
+
+    assert client.create_page("On Randomness", "Body") == "page_123"
 
 
 def test_from_env_requires_token(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -83,4 +89,4 @@ def test_from_env_builds_client(monkeypatch: pytest.MonkeyPatch) -> None:
 
     client = NotionClient.from_env()
 
-    assert client.build_page(_article())["parent"] == {"database_id": "db123"}
+    assert client.build_page("T", "C")["parent"] == {"database_id": "db123"}

@@ -1,19 +1,21 @@
-"""CLI entry point for the Writer (M3 Writer).
+"""CLI entry point for the Writer (M3 Writer, M5 Task-003).
 
 Usage::
 
-    arkmind-writer <topic.json> <asset.json> <article.md> [--provider {fake,real}] [--model NAME]
+    arkmind-writer <topic.json> <asset.json> [--provider {fake,real}] [--model NAME]
 
 Reads a Topic JSON array (``arkmind-topic``) plus an Asset JSON array
 (``arkmind-asset``), builds an in-memory Asset repository so the Writer can
 resolve each Topic's asset_id references to full content, then drives the Writer
-to produce a single Markdown article.
+to generate content and store it in Notion (the System of Record). The CLI
+prints the created Notion page id; no Markdown file is written.
 
 The provider defaults to ``fake`` (offline, deterministic) so tests and CI never
 touch the network or consume API credits. ``--provider real`` selects the
 OpenAI-compatible client, configured via ``ARKMIND_LLM_API_KEY`` /
 ``ARKMIND_LLM_BASE_URL`` and the ``--model`` argument — the same Runtime style as
-``arkmind-asset``. No business logic lives here.
+``arkmind-asset``. The Notion client is configured via ``ARKMIND_NOTION_TOKEN`` /
+``ARKMIND_NOTION_DATABASE_ID``. No business logic lives here.
 """
 
 from __future__ import annotations
@@ -52,7 +54,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="arkmind-writer")
     parser.add_argument("topics")
     parser.add_argument("assets")
-    parser.add_argument("output")
     parser.add_argument("--provider", choices=["fake", "real"], default="fake")
     parser.add_argument("--model", default=None)
     args = parser.parse_args()
@@ -62,6 +63,7 @@ def main() -> None:
     assets = _load_assets(Path(args.assets))
 
     llm = _build_llm(args.provider, args.model)
-    article = WriterService(llm=llm).write(topics, assets)
+    page_id = WriterService(llm=llm).write(topics, assets)
 
-    Path(args.output).write_text(f"{article.markdown}\n", encoding="utf-8")
+    print("Created Notion Page")
+    print(f"Page ID: {page_id}")

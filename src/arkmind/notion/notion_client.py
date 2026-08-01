@@ -1,14 +1,15 @@
-"""NotionClient — the concrete destination client for the Publisher (M5, Task-001).
+"""NotionClient — the persistence layer for the Writer (M5, Task-003).
 
-This is the single place that knows about Notion. It implements the
-``PublisherClient`` contract by mapping an ``Article`` onto a Notion database page
-and creating it via the Notion REST API. The rest of the Publisher stays unaware
-of Notion entirely; replacing this file (e.g. with the official SDK, or a
-different destination) leaves ``Publisher`` untouched.
+ArkMind's System of Record is a Notion database: the Writer stores generated
+content there directly, and the pipeline ends at Notion. There is no publishing
+concept — content is created (``create_page``), not distributed.
 
+This module is the single place that knows about Notion. It maps the Writer's
+output onto a Notion database page and creates it via the Notion REST API.
 Deliberately dependency-free: the HTTP call uses the standard library
-(``urllib.request``) rather than a third-party Notion SDK, keeping the M5 MVP off
-the dependency whitelist. When an official SDK is approved, only this file changes.
+(``urllib.request``) rather than a third-party Notion SDK, keeping the
+dependency whitelist unchanged. When an official SDK is approved, only this
+file changes.
 
 Credentials follow the existing ``ARKMIND_*`` runtime convention (see
 ``arkmind.runtime.config``):
@@ -16,16 +17,13 @@ Credentials follow the existing ``ARKMIND_*`` runtime convention (see
 * ``ARKMIND_NOTION_TOKEN`` — Notion integration token (required).
 * ``ARKMIND_NOTION_DATABASE_ID`` — target Articles database id (required).
 
-Frozen Article -> Notion property mapping::
+Content -> Notion property mapping (fields frozen by the M5 architecture; the
+Book / Author / Created Time / Word Count / Topic Count / Asset Count
+properties are populated once the Writer output contract is frozen in a
+separate RFC)::
 
-    title            -> Title        (title)
-    content          -> Content      (rich_text)
-    metadata.book    -> Book         (rich_text)
-    metadata.author  -> Author       (rich_text)
-    metadata.created_at   -> Created Time (date)
-    metadata.word_count   -> Word Count   (number)
-    metadata.topic_count  -> Topic Count  (number)
-    metadata.asset_count  -> Asset Count  (number)
+    title   -> Title   (title)
+    content -> Content (rich_text)
 """
 
 from __future__ import annotations
@@ -33,9 +31,6 @@ from __future__ import annotations
 import json
 import os
 import urllib.request
-
-from arkmind.publisher.article import Article
-from arkmind.publisher.publisher import PublisherClient
 
 _TOKEN_ENV = "ARKMIND_NOTION_TOKEN"
 _DATABASE_ENV = "ARKMIND_NOTION_DATABASE_ID"
@@ -52,8 +47,8 @@ class MissingNotionConfigError(RuntimeError):
         self.variable = variable
 
 
-class NotionClient(PublisherClient):
-    """Create a page in a Notion database from an ``Article``."""
+class NotionClient:
+    """Create a page in a Notion database and return its page id."""
 
     def __init__(self, token: str, database_id: str) -> None:
         self._token = token
@@ -70,29 +65,24 @@ class NotionClient(PublisherClient):
             raise MissingNotionConfigError(_DATABASE_ENV)
         return cls(token=token, database_id=database_id)
 
-    def publish(self, article: Article) -> None:
-        payload = json.dumps(self.build_page(article)).encode("utf-8")
+    def create_page(self, title: str, content: str) -> str:
+        """Create a page from ``title`` / ``content`` and return the page id."""
+        payload = json.dumps(self.build_page(title, content)).encode("utf-8")
         request = urllib.request.Request(_API_URL, data=payload, method="POST")
         request.add_header("Authorization", f"Bearer {self._token}")
         request.add_header("Notion-Version", _NOTION_VERSION)
         request.add_header("Content-Type", "application/json")
         with urllib.request.urlopen(request) as response:
-            response.read()
+            page = json.loads(response.read())
+        return page["id"]
 
-    def build_page(self, article: Article) -> dict[str, object]:
-        """Map an ``Article`` onto a Notion ``pages.create`` request body."""
-        meta = article.metadata
+    def build_page(self, title: str, content: str) -> dict[str, object]:
+        """Map ``title`` / ``content`` onto a Notion ``pages.create`` request body."""
         return {
             "parent": {"database_id": self._database_id},
             "properties": {
-                "Title": {"title": [{"text": {"content": article.title}}]},
-                "Content": {"rich_text": self._rich_text(article.content)},
-                "Book": {"rich_text": self._rich_text(meta.book)},
-                "Author": {"rich_text": self._rich_text(meta.author)},
-                "Created Time": {"date": {"start": meta.created_at.isoformat()}},
-                "Word Count": {"number": meta.word_count},
-                "Topic Count": {"number": meta.topic_count},
-                "Asset Count": {"number": meta.asset_count},
+                "Title": {"title": [{"text": {"content": title}}]},
+                "Content": {"rich_text": self._rich_text(content)},
             },
         }
 
