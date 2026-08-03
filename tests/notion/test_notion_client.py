@@ -67,19 +67,26 @@ def test_build_page_never_writes_content_property() -> None:
     assert "Content" not in page["properties"]  # type: ignore[operator]
 
 
-def test_build_page_body_uses_fixed_template() -> None:
+def test_build_page_body_starts_with_content_and_ends_with_footer() -> None:
     client = NotionClient(token="secret", database_id="db123")
 
     children = client.build_page("T", "正文\n\n第二段")["children"]
     assert isinstance(children, list)
 
-    # Body template: AI Draft heading, converted body, Editor Notes, Review.
-    assert children[0]["type"] == "heading_1"
-    assert children[0]["heading_1"]["rich_text"][0]["text"]["content"] == "AI Draft"  # type: ignore[index]
-    assert children[1]["type"] == "paragraph"
-    assert children[1]["paragraph"]["rich_text"][0]["text"]["content"] == "正文"  # type: ignore[index]
-    assert children[-1]["type"] == "heading_1"
-    assert children[-1]["heading_1"]["rich_text"][0]["text"]["content"] == "Review"  # type: ignore[index]
+    # Body template: content first (its level-1 heading is the article title),
+    # then the Editor Notes / Review footer.
+    types = [child["type"] for child in children]
+    assert types == [
+        "paragraph",
+        "paragraph",
+        "divider",
+        "heading_2",
+        "divider",
+        "heading_2",
+    ]
+    assert children[0]["paragraph"]["rich_text"][0]["text"]["content"] == "正文"  # type: ignore[index]
+    assert children[3]["heading_2"]["rich_text"][0]["text"]["content"] == "Editor Notes"  # type: ignore[index]
+    assert children[5]["heading_2"]["rich_text"][0]["text"]["content"] == "Review"  # type: ignore[index]
 
 
 def test_build_page_long_paragraph_chunked_in_blocks() -> None:
@@ -90,7 +97,7 @@ def test_build_page_long_paragraph_chunked_in_blocks() -> None:
 
     children = page["children"]
     assert isinstance(children, list)
-    spans = children[1]["paragraph"]["rich_text"]  # type: ignore[index]
+    spans = children[0]["paragraph"]["rich_text"]  # type: ignore[index]
     lengths = [len(span["text"]["content"]) for span in spans]
     assert lengths == [2000, 2000, 500]
     assert "".join(span["text"]["content"] for span in spans) == long_content

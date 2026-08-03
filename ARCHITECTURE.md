@@ -158,18 +158,18 @@ Publisher 永远只是 Adapter。
 正文写入 Page Body（Blocks）。Page 创建后固定生成如下结构：
 
 ```text
-# AI Draft
-
-（AI 生成正文，Markdown 转换为 Blocks）
+（AI 生成正文，Markdown 转换为 Blocks；第一个 H1 即文章标题）
 
 ---
 
-# Editor Notes
+## Editor Notes
 
 ---
 
-# Review
+## Review
 ```
+
+正文直接开始，不使用占位 Heading（文章标题就是真正的大标题）。
 
 冻结。以后允许新增字段。禁止删除已有字段。
 

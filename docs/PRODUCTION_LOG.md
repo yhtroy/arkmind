@@ -45,5 +45,5 @@
 
 - [x] **BACKLOG-001：Notion Page Body vs Content Property**（来源：M5.5 第一篇《黑天鹅》2026-07-27）
       观察：正文存储在 Content Rich Text 属性，阅读体验一般，无法充分利用 Notion Block 编辑能力。
-      结论：2026-07-27 CEO 裁定实施 Editorial Database v2——正文进 Page Body（AI Draft / Editor Notes / Review 模板），Content 字段删除，Properties 只保留 Title/Book/Author/Status/Word Count。已实施（commit ef199a3）。
+      结论：2026-07-27 CEO 裁定实施 Editorial Database v2——正文进 Page Body，Content 字段删除，Properties 只保留 Title/Book/Author/Status/Word Count。已实施（commit ef199a3）。2026-07-27 后续修正（commit 待填）：去掉 AI Draft 占位 Heading，正文直接开始，Editor Notes / Review 降为 H2 页脚。
 - [ ] asset-full.json（219 条历史产物）content 全部为 "None"，不可用——历史数据问题非 M5 Bug，M5.5 不修（Review ⑥，2026-07-27）

@@ -55,10 +55,9 @@ class _HealthyClient:
     @staticmethod
     def fetch_children(page_id: str) -> list[dict[str, object]]:
         return [
-            {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "AI Draft"}]}},
             {"type": "paragraph", "paragraph": {"rich_text": [{"plain_text": "Smoke Test"}]}},
-            {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "Editor Notes"}]}},
-            {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "Review"}]}},
+            {"type": "heading_2", "heading_2": {"rich_text": [{"plain_text": "Editor Notes"}]}},
+            {"type": "heading_2", "heading_2": {"rich_text": [{"plain_text": "Review"}]}},
         ]
 
 
@@ -140,7 +139,7 @@ def test_smoke_creates_page_and_prints_id(
     assert "OK Created Notion Page" in out
     assert "OK Page ID: page_001" in out
     assert "OK Properties: Status=Draft Word Count=9" in out
-    assert "OK Body: AI Draft / Editor Notes / Review" in out
+    assert "OK Body: content first, then Editor Notes / Review" in out
     assert "OK Ready" in out
 
 
@@ -184,3 +183,25 @@ def test_smoke_verification_failure_reported(
         notion_cli.main()
     assert excinfo.value.code == 1
     assert "ERROR Smoke verification failed: Status" in capsys.readouterr().err
+
+
+def test_smoke_verification_rejects_ai_draft_heading(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class _AiDraftClient(_HealthyClient):
+        @staticmethod
+        def fetch_children(page_id: str) -> list[dict[str, object]]:
+            return [
+                {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "AI Draft"}]}},
+                {"type": "paragraph", "paragraph": {"rich_text": [{"plain_text": "Smoke Test"}]}},
+                {"type": "heading_2", "heading_2": {"rich_text": [{"plain_text": "Editor Notes"}]}},
+                {"type": "heading_2", "heading_2": {"rich_text": [{"plain_text": "Review"}]}},
+            ]
+
+    _patch_from_env(monkeypatch, _AiDraftClient())
+    monkeypatch.setattr("sys.argv", ["arkmind-notion-check", "--smoke"])
+
+    with pytest.raises(SystemExit) as excinfo:
+        notion_cli.main()
+    assert excinfo.value.code == 1
+    assert "ERROR Smoke verification failed: unexpected headings" in capsys.readouterr().err

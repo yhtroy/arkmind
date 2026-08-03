@@ -57,9 +57,10 @@ Automation ends at Notion. Everything after Notion is manual.
   page id; CLI prints `Created Notion Page` / `Page ID`).
 - Notion Articles database (Editorial Database v2, 2026-07-27): management
   properties populated by the Writer — Title / Book / Author / Status (Draft) /
-  Word Count; the body is written to the **Page Body** (fixed template `AI Draft`
-  / `Editor Notes` / `Review`, Markdown converted to blocks). Content is never
-  stored in a property.
+  Word Count; the body is written to the **Page Body** (Markdown converted to
+  blocks; the article starts directly, its first H1 is the title — no placeholder
+  heading; the page ends with the fixed footer `Editor Notes` / `Review`).
+  Content is never stored in a property.
 
 ## Milestones
 

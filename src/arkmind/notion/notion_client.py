@@ -20,21 +20,20 @@ Credentials follow the existing ``ARKMIND_*`` runtime convention (see
 Editorial Database schema (frozen 2026-07-27): properties carry management
 metadata only — Title / Book / Author / Status / Word Count. The generated
 body is written to the Page Body (``children`` blocks), never to a property.
-The Page Body always starts with the fixed template::
-
-    # AI Draft
+The Page Body starts directly with the article (its level-1 heading is the
+article title) and always ends with the fixed footer::
 
     (generated Markdown, converted to blocks)
 
     ---
 
-    # Editor Notes
+    ## Editor Notes
 
     ---
 
-    # Review
+    ## Review
 
-The Markdown -> blocks conversion lives in :mod:`arkmind.notion.markdown_blocks`
+The Markdown -> blocks conversion lives in :mod:`arkmind.notion.block_builder`
 so the Writer contract (Markdown) stays untouched; Notion is the only place
 that understands Notion.
 """
@@ -47,7 +46,7 @@ import re
 import urllib.error
 import urllib.request
 
-from arkmind.notion.markdown_blocks import markdown_to_blocks
+from arkmind.notion.block_builder import build_blocks
 
 _TOKEN_ENV = "ARKMIND_NOTION_TOKEN"
 _DATABASE_ENV = "ARKMIND_NOTION_DATABASE_ID"
@@ -59,7 +58,6 @@ _DATABASES_URL = "https://api.notion.com/v1/databases/{id}"
 _NOTION_VERSION = "2022-06-28"
 _WHITESPACE = re.compile(r"\s+")
 
-_BODY_HEADING = "AI Draft"
 _EDITOR_HEADING = "Editor Notes"
 _REVIEW_HEADING = "Review"
 
@@ -204,23 +202,23 @@ class NotionClient:
 
     @staticmethod
     def _page_children(content: str) -> list[dict[str, object]]:
-        """Build the fixed Page Body template around the converted Markdown body."""
+        """Build the Page Body: the article first, then the editor/review footer."""
 
-        def heading(name: str) -> dict[str, object]:
+        def heading(name: str, level: int) -> dict[str, object]:
+            block_type = f"heading_{level}"
             return {
                 "object": "block",
-                "type": "heading_1",
-                "heading_1": {"rich_text": [{"type": "text", "text": {"content": name}}]},
+                "type": block_type,
+                block_type: {"rich_text": [{"type": "text", "text": {"content": name}}]},
             }
 
         divider: dict[str, object] = {"object": "block", "type": "divider", "divider": {}}
         return [
-            heading(_BODY_HEADING),
-            *markdown_to_blocks(content),
+            *build_blocks(content),
             divider,
-            heading(_EDITOR_HEADING),
+            heading(_EDITOR_HEADING, 2),
             divider,
-            heading(_REVIEW_HEADING),
+            heading(_REVIEW_HEADING, 2),
         ]
 
     @staticmethod

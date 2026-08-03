@@ -1,8 +1,10 @@
-"""Markdown -> Notion Blocks converter (Editorial Database v2).
+"""Notion Blocks builder (Editorial Database v2).
 
-The Writer keeps producing Markdown (its output contract is unchanged); this
-module is the single place that turns that Markdown into the ``children``
-(Page Body blocks) of a Notion page. The Writer never sees Notion.
+Builds the ``children`` (Page Body blocks) of a Notion page. The current
+input format is Markdown (the Writer's output contract is unchanged) and the
+module is the single place that knows how to turn content into Notion blocks;
+the Writer never sees Notion. Future input formats (HTML, Docx, ...) will get
+converters here without touching the Notion client.
 
 Covered Markdown subset — everything the Writer's real output currently uses
 (H1-H3 headings, paragraphs, bullet lists, quotes, dividers, code fences) plus
@@ -32,7 +34,7 @@ _TYPES = {
 }
 
 
-def markdown_to_blocks(markdown: str) -> list[dict[str, object]]:
+def build_blocks(markdown: str) -> list[dict[str, object]]:
     """Convert a Markdown document into a list of Notion block objects."""
     blocks: list[dict[str, object]] = []
     paragraph: list[str] = []

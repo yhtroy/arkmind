@@ -8,8 +8,8 @@ Checks the Notion environment before the Writer ever runs: token validity,
 database reachability/sharing, and (with ``--smoke``) a real write test that
 creates ``Hello ArkMind v2`` and verifies the Editorial Database contract on
 read-back: management properties (Status=Draft, Word Count, Book, Author) and
-the Page Body template (AI Draft / Editor Notes / Review headings). Prints
-friendly per-step status instead of raw HTTP errors:
+the Page Body template (content first, then the Editor Notes / Review footer).
+Prints friendly per-step status instead of raw HTTP errors::
 
     OK Token
     OK Database (shared, read/write)
@@ -17,7 +17,7 @@ friendly per-step status instead of raw HTTP errors:
     OK Created Notion Page
     OK Page ID: <id>
     OK Properties: Status=Draft Word Count=9
-    OK Body: AI Draft / Editor Notes / Review
+    OK Body: content first, then Editor Notes / Review
     OK Ready
 
 Output is plain ASCII on purpose: the Windows console defaults to the GBK
@@ -43,7 +43,8 @@ _SMOKE_TITLE = "Hello ArkMind v2"
 _SMOKE_CONTENT = "Smoke Test"
 _SMOKE_BOOK = "Smoke Book"
 _SMOKE_AUTHOR = "Smoke Author"
-_BODY_HEADINGS = ("AI Draft", "Editor Notes", "Review")
+_FOOTER_HEADINGS = ("Editor Notes", "Review")
+_FORBIDDEN_HEADINGS = ("AI Draft",)
 
 
 def _fail(message: str) -> NoReturn:
@@ -85,9 +86,11 @@ def _verify_smoke(page: dict[str, object], children: list[dict[str, object]]) ->
         _fail("Smoke verification failed: Author property is empty or wrong")
     headings = set()
     for block in children:
-        if block["type"] != "heading_1":
+        block_type = block["type"]
+        assert isinstance(block_type, str)
+        if not block_type.startswith("heading_"):
             continue
-        heading_payload = block["heading_1"]
+        heading_payload = block[block_type]
         assert isinstance(heading_payload, dict)
         rich_text = heading_payload["rich_text"]
         assert isinstance(rich_text, list) and rich_text
@@ -96,9 +99,26 @@ def _verify_smoke(page: dict[str, object], children: list[dict[str, object]]) ->
         plain_text = first["plain_text"]
         assert isinstance(plain_text, str)
         headings.add(plain_text)
-    missing = [name for name in _BODY_HEADINGS if name not in headings]
+    missing = [name for name in _FOOTER_HEADINGS if name not in headings]
     if missing:
         _fail(f"Smoke verification failed: Page Body missing headings {missing}")
+    forbidden = [name for name in _FORBIDDEN_HEADINGS if name in headings]
+    if forbidden:
+        _fail(f"Smoke verification failed: unexpected headings in Page Body {forbidden}")
+    if not children or children[0]["type"] != "paragraph":
+        _fail("Smoke verification failed: Page Body must start with the article content")
+    first_rich_text = children[0]["paragraph"]
+    assert isinstance(first_rich_text, dict)
+    rich_text = first_rich_text["rich_text"]
+    assert isinstance(rich_text, list) and rich_text
+    first_text = rich_text[0]
+    assert isinstance(first_text, dict)
+    plain_text = first_text["plain_text"]
+    assert isinstance(plain_text, str)
+    if plain_text != _SMOKE_CONTENT:
+        _fail(
+            f"Smoke verification failed: first block is {plain_text!r}, expected the article content"
+        )
 
 
 def main() -> None:
@@ -156,7 +176,7 @@ def main() -> None:
             _fail(f"Smoke verification failed: HTTP {error.code}")
         _verify_smoke(page, children)
         print(f"OK Properties: Status=Draft Word Count={word_count(_SMOKE_CONTENT)}")
-        print("OK Body: AI Draft / Editor Notes / Review")
+        print("OK Body: content first, then Editor Notes / Review")
 
     print("OK Ready")
 
