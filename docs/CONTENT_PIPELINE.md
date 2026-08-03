@@ -55,9 +55,11 @@ Automation ends at Notion. Everything after Notion is manual.
   still **Topic + Asset** (Knowledge-driven Writer input is a later milestone).
 - Writer → Notion direct store: landed (`arkmind/notion`, `create_page` returns
   page id; CLI prints `Created Notion Page` / `Page ID`).
-- Notion Articles database: Title + Content populated today; Book / Author /
-  Created Time / Word Count / Topic Count / Asset Count await the Writer
-  Contract v2 RFC (driven by real production data).
+- Notion Articles database (Editorial Database v2, 2026-07-27): management
+  properties populated by the Writer — Title / Book / Author / Status (Draft) /
+  Word Count; the body is written to the **Page Body** (fixed template `AI Draft`
+  / `Editor Notes` / `Review`, Markdown converted to blocks). Content is never
+  stored in a property.
 
 ## Milestones
 

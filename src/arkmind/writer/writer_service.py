@@ -51,12 +51,28 @@ class WriterService:
     def build_prompt(self, topics: list[Topic], assets: AssetRepository) -> str:
         return self._prompt_builder.build(topics, assets)
 
-    def write(self, topics: list[Topic], assets: AssetRepository) -> str:
-        """Generate content from ``topics`` / ``assets``, store it in Notion, return the page id."""
+    def write(
+        self,
+        topics: list[Topic],
+        assets: AssetRepository,
+        *,
+        book: str | None = None,
+        author: str | None = None,
+    ) -> str:
+        """Generate content from ``topics`` / ``assets``, store it in Notion, return the page id.
+
+        ``book`` / ``author`` are source metadata passed through to Notion
+        unchanged; the Writer never derives or reshapes them.
+        """
         instruction = self._prompt_builder.instruction()
         context = self._prompt_builder.context(topics, assets)
         response = self._llm.generate(instruction, context)
-        return self._notion.create_page(title=self._extract_title(response), content=response)
+        return self._notion.create_page(
+            title=self._extract_title(response),
+            content=response,
+            book=book,
+            author=author,
+        )
 
     @staticmethod
     def _extract_title(markdown: str) -> str:

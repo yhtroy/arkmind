@@ -57,6 +57,12 @@ def main() -> None:
     parser.add_argument("assets")
     parser.add_argument("--provider", choices=["fake", "real"], default="fake")
     parser.add_argument("--model", default=None)
+    parser.add_argument(
+        "--book", default=None, help="Source book, stored in the Notion Book property"
+    )
+    parser.add_argument(
+        "--author", default=None, help="Source author, stored in the Notion Author property"
+    )
     args = parser.parse_args()
 
     raw = json.loads(Path(args.topics).read_text(encoding="utf-8"))
@@ -64,7 +70,9 @@ def main() -> None:
     assets = _load_assets(Path(args.assets))
 
     llm = _build_llm(args.provider, args.model)
-    page_id = WriterService(notion=NotionClient.from_env(), llm=llm).write(topics, assets)
+    page_id = WriterService(notion=NotionClient.from_env(), llm=llm).write(
+        topics, assets, book=args.book, author=args.author
+    )
 
     print("Created Notion Page")
     print(f"Page ID: {page_id}")

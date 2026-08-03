@@ -17,29 +17,51 @@ Credentials follow the existing ``ARKMIND_*`` runtime convention (see
 * ``ARKMIND_NOTION_TOKEN`` — Notion integration token (required).
 * ``ARKMIND_NOTION_DATABASE_ID`` — target Articles database id (required).
 
-Content -> Notion property mapping (fields frozen by the M5 architecture; the
-Book / Author / Created Time / Word Count / Topic Count / Asset Count
-properties are populated once the Writer output contract is frozen in a
-separate RFC)::
+Editorial Database schema (frozen 2026-07-27): properties carry management
+metadata only — Title / Book / Author / Status / Word Count. The generated
+body is written to the Page Body (``children`` blocks), never to a property.
+The Page Body always starts with the fixed template::
 
-    title   -> Title   (title)
-    content -> Content (rich_text)
+    # AI Draft
+
+    (generated Markdown, converted to blocks)
+
+    ---
+
+    # Editor Notes
+
+    ---
+
+    # Review
+
+The Markdown -> blocks conversion lives in :mod:`arkmind.notion.markdown_blocks`
+so the Writer contract (Markdown) stays untouched; Notion is the only place
+that understands Notion.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
+
+from arkmind.notion.markdown_blocks import markdown_to_blocks
 
 _TOKEN_ENV = "ARKMIND_NOTION_TOKEN"
 _DATABASE_ENV = "ARKMIND_NOTION_DATABASE_ID"
 _API_URL = "https://api.notion.com/v1/pages"
+_PAGE_URL = "https://api.notion.com/v1/pages/{id}"
+_BLOCKS_URL = "https://api.notion.com/v1/blocks/{id}/children"
 _ME_URL = "https://api.notion.com/v1/users/me"
 _DATABASES_URL = "https://api.notion.com/v1/databases/{id}"
 _NOTION_VERSION = "2022-06-28"
-_RICH_TEXT_LIMIT = 2000
+_WHITESPACE = re.compile(r"\s+")
+
+_BODY_HEADING = "AI Draft"
+_EDITOR_HEADING = "Editor Notes"
+_REVIEW_HEADING = "Review"
 
 
 class MissingNotionConfigError(RuntimeError):
@@ -118,9 +140,18 @@ class NotionClient:
                 f"Network error while reaching Notion: {error.reason}"
             ) from error
 
-    def create_page(self, title: str, content: str) -> str:
-        """Create a page from ``title`` / ``content`` and return the page id."""
-        payload = json.dumps(self.build_page(title, content)).encode("utf-8")
+    def create_page(
+        self,
+        title: str,
+        content: str,
+        *,
+        book: str | None = None,
+        author: str | None = None,
+    ) -> str:
+        """Create a page and return its id; ``content`` is Markdown, stored as Page Body blocks."""
+        payload = json.dumps(self.build_page(title, content, book=book, author=author)).encode(
+            "utf-8"
+        )
         request = urllib.request.Request(_API_URL, data=payload, method="POST")
         request.add_header("Authorization", f"Bearer {self._token}")
         request.add_header("Notion-Version", _NOTION_VERSION)
@@ -129,22 +160,81 @@ class NotionClient:
             page = json.loads(response.read())
         return page["id"]
 
-    def build_page(self, title: str, content: str) -> dict[str, object]:
-        """Map ``title`` / ``content`` onto a Notion ``pages.create`` request body."""
+    def fetch_page(self, page_id: str) -> dict[str, object]:
+        """Return the raw page object (properties) for ``page_id``."""
+        request = urllib.request.Request(_PAGE_URL.format(id=page_id), method="GET")
+        request.add_header("Authorization", f"Bearer {self._token}")
+        request.add_header("Notion-Version", _NOTION_VERSION)
+        with urllib.request.urlopen(request) as response:
+            return json.loads(response.read())
+
+    def fetch_children(self, page_id: str) -> list[dict[str, object]]:
+        """Return the raw Page Body blocks of ``page_id``."""
+        request = urllib.request.Request(_BLOCKS_URL.format(id=page_id), method="GET")
+        request.add_header("Authorization", f"Bearer {self._token}")
+        request.add_header("Notion-Version", _NOTION_VERSION)
+        with urllib.request.urlopen(request) as response:
+            payload = json.loads(response.read())
+        return payload["results"]
+
+    def build_page(
+        self,
+        title: str,
+        content: str,
+        *,
+        book: str | None = None,
+        author: str | None = None,
+    ) -> dict[str, object]:
+        """Map ``title`` / ``content`` onto a Notion ``pages.create`` request body.
+
+        Properties carry management metadata only (frozen Editorial Database
+        schema); the body goes to the Page Body ``children``.
+        """
         return {
             "parent": {"database_id": self._database_id},
             "properties": {
                 "Title": {"title": [{"text": {"content": title}}]},
-                "Content": {"rich_text": self._rich_text(content)},
+                "Book": self._rich_text(book),
+                "Author": self._rich_text(author),
+                "Status": {"select": {"name": "Draft"}},
+                "Word Count": {"number": word_count(content)},
             },
+            "children": self._page_children(content),
         }
 
     @staticmethod
-    def _rich_text(text: str) -> list[dict[str, object]]:
-        """Split ``text`` into Notion rich-text chunks under the per-object limit."""
-        if not text:
-            return []
+    def _page_children(content: str) -> list[dict[str, object]]:
+        """Build the fixed Page Body template around the converted Markdown body."""
+
+        def heading(name: str) -> dict[str, object]:
+            return {
+                "object": "block",
+                "type": "heading_1",
+                "heading_1": {"rich_text": [{"type": "text", "text": {"content": name}}]},
+            }
+
+        divider: dict[str, object] = {"object": "block", "type": "divider", "divider": {}}
         return [
-            {"text": {"content": text[start : start + _RICH_TEXT_LIMIT]}}
-            for start in range(0, len(text), _RICH_TEXT_LIMIT)
+            heading(_BODY_HEADING),
+            *markdown_to_blocks(content),
+            divider,
+            heading(_EDITOR_HEADING),
+            divider,
+            heading(_REVIEW_HEADING),
         ]
+
+    @staticmethod
+    def _rich_text(text: str | None) -> dict[str, object]:
+        """Return a rich_text property payload; empty when ``text`` is falsy."""
+        if not text:
+            return {"rich_text": []}
+        return {"rich_text": [{"text": {"content": text}}]}
+
+
+def word_count(markdown: str) -> int:
+    """Approximate word count: ``markdown`` length with all whitespace removed.
+
+    Markdown syntax characters still count — this is a cheap, deterministic
+    size signal for the Word Count property, not a linguistic measure.
+    """
+    return len(_WHITESPACE.sub("", markdown))

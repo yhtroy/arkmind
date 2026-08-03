@@ -104,7 +104,7 @@ created_at
 metadata
 ```
 
-- `content` 保存完整 Markdown。
+- 正文（`content`）保存于 Notion Page Body（Blocks），不进入任何 Property。
 - Writer 不负责平台。
 - Writer 不负责数据库。
 - Writer 不负责发布。
@@ -143,50 +143,43 @@ Publisher 永远只是 Adapter。
 
 数据库：`Articles`
 
-字段冻结如下：
+字段冻结如下（Editorial Database v2，2026-07-27）：
 
-| 字段            | 类型          |
-| -------------- | ------------ |
-| Title          | Title        |
-| Book           | Text         |
-| Author         | Text         |
-| Content        | Rich Text    |
-| Status         | Select       |
-| Publish Target | Multi Select |
-| Created Time   | Date         |
-| Updated Time   | Date         |
-| Word Count     | Number       |
-| Topic Count    | Number       |
-| Asset Count    | Number       |
+| 字段        | 类型       | 说明                         |
+| ---------- | --------- | --------------------------- |
+| Title      | Title     | 文章标题                      |
+| Book       | Rich Text | 来源书籍（Writer 透传）        |
+| Author     | Rich Text | 作者（Writer 透传）           |
+| Status     | Select    | Draft / Editing / Done      |
+| Word Count | Number    | 正文近似字数（去空白）          |
 
-**冻结。** 以后允许新增字段。禁止删除已有字段。
+**Properties 只保存管理元数据。正文不进入 Property。**
+
+正文写入 Page Body（Blocks）。Page 创建后固定生成如下结构：
+
+```text
+# AI Draft
+
+（AI 生成正文，Markdown 转换为 Blocks）
 
 ---
 
-## 6. Publish Target
+# Editor Notes
 
-Publish Target 不代表已经发布。它只是"未来计划同步的平台"。
+---
 
-例如：知乎、头条、百家、公众号、Notion Only。
-
-目前 MVP：
-
-```
-Notion Only
+# Review
 ```
 
-以后扩展：
+冻结。以后允许新增字段。禁止删除已有字段。
 
-```
-Notion
-      │
-      ├── Zhihu
-      ├── Toutiao
-      ├── Xiaohongshu
-      └── WeChat
-```
+---
 
-Publisher 不需要改 Writer。
+## 6. Publishing（人工）
+
+发布完全由人工完成：编辑完成后，手动将正文分发到各平台（知乎、头条、公众号等）。
+
+数据库不保存平台/发布字段（Platform / Publish Record 于 2026-07-27 移除：当前无人填写）。
 
 ---
 
@@ -196,9 +189,8 @@ Status：
 
 ```
 Draft
-Review
-Published
-Archived
+Editing
+Done
 ```
 
 生命周期：
@@ -208,14 +200,16 @@ Writer
    ↓
 Draft
    ↓
-人工 Review
+人工编辑
    ↓
-Published
+Editing
    ↓
-Archive
+Done
+   ↓
+人工发布（数据库不记录）
 ```
 
-冻结。
+冻结。以后真开始运营，再增加状态。
 
 ---
 

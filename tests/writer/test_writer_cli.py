@@ -28,10 +28,17 @@ class _RecordingNotion:
     """Offline stand-in for NotionClient — records without any network."""
 
     def __init__(self) -> None:
-        self.stored: list[tuple[str, str]] = []
+        self.stored: list[dict[str, object]] = []
 
-    def create_page(self, title: str, content: str) -> str:
-        self.stored.append((title, content))
+    def create_page(
+        self,
+        title: str,
+        content: str,
+        *,
+        book: str | None = None,
+        author: str | None = None,
+    ) -> str:
+        self.stored.append({"title": title, "content": content, "book": book, "author": author})
         return "page_001"
 
 
@@ -88,7 +95,59 @@ def test_main_reads_topics_and_assets_and_prints_page_id(
     assert "Created Notion Page" in out
     assert "Page ID: page_001" in out
     # The canned response (with H1) lands in Notion verbatim; no file is written.
-    assert notion.stored == [("黑天鹅", "# 黑天鹅\n\n极不可能却影响巨大的事件")]
+    assert notion.stored == [
+        {
+            "title": "黑天鹅",
+            "content": "# 黑天鹅\n\n极不可能却影响巨大的事件",
+            "book": None,
+            "author": None,
+        }
+    ]
+
+
+def test_main_passes_book_and_author_flags(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    topics_path = tmp_path / "topic.json"
+    assets_path = tmp_path / "asset.json"
+    topics_path.write_text(
+        json.dumps([_topic("topic-001", "黑天鹅", ["c1"])]),
+        encoding="utf-8",
+    )
+    assets_path.write_text(
+        json.dumps([_asset("c1", "极不可能却影响巨大的事件")]),
+        encoding="utf-8",
+    )
+
+    notion = _RecordingNotion()
+    monkeypatch.setattr(writer_cli, "FakeLLMClient", _CannedLLM)
+    monkeypatch.setattr(
+        "arkmind.notion.notion_client.NotionClient.from_env",
+        classmethod(lambda cls: notion),
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "arkmind-writer",
+            str(topics_path),
+            str(assets_path),
+            "--book",
+            "黑天鹅",
+            "--author",
+            "塔勒布",
+        ],
+    )
+    writer_cli.main()
+
+    assert notion.stored == [
+        {
+            "title": "黑天鹅",
+            "content": "# 黑天鹅\n\n极不可能却影响巨大的事件",
+            "book": "黑天鹅",
+            "author": "塔勒布",
+        }
+    ]
 
 
 def test_main_handles_empty_input(

@@ -1,8 +1,8 @@
-"""Tests for NotionClient (M5, Task-003).
+"""Tests for NotionClient (M5, Task-003; Editorial Database v2).
 
 Offline tests: the pure ``build_page`` mapping and ``from_env`` config loading
-are exercised directly; the network ``create_page`` call is stubbed via
-``urllib.request.urlopen`` to verify the returned page id.
+are exercised directly; the network calls (``create_page`` / ``fetch_page`` /
+``fetch_children``) are stubbed via ``urllib.request.urlopen``.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from urllib.error import HTTPError, URLError
 import pytest
 
 from arkmind.notion import MissingNotionConfigError, NotionClient, NotionEnvironmentError
+from arkmind.notion.notion_client import word_count
 
 
 class _FakeResponse:
@@ -32,28 +33,72 @@ class _FakeResponse:
         return self._body
 
 
-def test_build_page_maps_title_and_content() -> None:
+def test_build_page_maps_management_properties() -> None:
     client = NotionClient(token="secret", database_id="db123")
 
-    page = client.build_page("On Randomness", "Body")
+    page = client.build_page("On Randomness", "Body", book="黑天鹅", author="塔勒布")
 
     assert page["parent"] == {"database_id": "db123"}
     props = page["properties"]
     assert isinstance(props, dict)
     assert props["Title"] == {"title": [{"text": {"content": "On Randomness"}}]}
-    assert props["Content"] == {"rich_text": [{"text": {"content": "Body"}}]}
+    assert props["Book"] == {"rich_text": [{"text": {"content": "黑天鹅"}}]}
+    assert props["Author"] == {"rich_text": [{"text": {"content": "塔勒布"}}]}
+    assert props["Status"] == {"select": {"name": "Draft"}}
+    assert props["Word Count"] == {"number": 4}  # "Body"
 
 
-def test_build_page_chunks_content_over_rich_text_limit() -> None:
+def test_build_page_omits_empty_book_and_author() -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    page = client.build_page("T", "Body")
+
+    props = page["properties"]
+    assert isinstance(props, dict)
+    assert props["Book"] == {"rich_text": []}
+    assert props["Author"] == {"rich_text": []}
+
+
+def test_build_page_never_writes_content_property() -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    page = client.build_page("T", "Body")
+
+    assert "Content" not in page["properties"]  # type: ignore[operator]
+
+
+def test_build_page_body_uses_fixed_template() -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    children = client.build_page("T", "正文\n\n第二段")["children"]
+    assert isinstance(children, list)
+
+    # Body template: AI Draft heading, converted body, Editor Notes, Review.
+    assert children[0]["type"] == "heading_1"
+    assert children[0]["heading_1"]["rich_text"][0]["text"]["content"] == "AI Draft"  # type: ignore[index]
+    assert children[1]["type"] == "paragraph"
+    assert children[1]["paragraph"]["rich_text"][0]["text"]["content"] == "正文"  # type: ignore[index]
+    assert children[-1]["type"] == "heading_1"
+    assert children[-1]["heading_1"]["rich_text"][0]["text"]["content"] == "Review"  # type: ignore[index]
+
+
+def test_build_page_long_paragraph_chunked_in_blocks() -> None:
     client = NotionClient(token="secret", database_id="db123")
     long_content = "x" * 4500  # 2000 + 2000 + 500
 
     page = client.build_page("T", long_content)
 
-    chunks = page["properties"]["Content"]["rich_text"]  # type: ignore[index]
-    lengths = [len(chunk["text"]["content"]) for chunk in chunks]
+    children = page["children"]
+    assert isinstance(children, list)
+    spans = children[1]["paragraph"]["rich_text"]  # type: ignore[index]
+    lengths = [len(span["text"]["content"]) for span in spans]
     assert lengths == [2000, 2000, 500]
-    assert "".join(chunk["text"]["content"] for chunk in chunks) == long_content
+    assert "".join(span["text"]["content"] for span in spans) == long_content
+
+
+def test_word_count_strips_whitespace() -> None:
+    assert word_count("a b\nc") == 3
+    assert word_count("") == 0
 
 
 def test_create_page_returns_page_id(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -65,6 +110,28 @@ def test_create_page_returns_page_id(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("urllib.request.urlopen", _fake_urlopen)
 
     assert client.create_page("On Randomness", "Body") == "page_123"
+
+
+def test_fetch_page_returns_raw_page(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _fake_urlopen(_request: object) -> _FakeResponse:
+        return _FakeResponse(b'{"id":"page_123","properties":{}}')
+
+    monkeypatch.setattr("urllib.request.urlopen", _fake_urlopen)
+
+    assert client.fetch_page("page_123")["id"] == "page_123"
+
+
+def test_fetch_children_returns_blocks(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _fake_urlopen(_request: object) -> _FakeResponse:
+        return _FakeResponse(b'{"results":[{"type":"heading_1"}]}')
+
+    monkeypatch.setattr("urllib.request.urlopen", _fake_urlopen)
+
+    assert client.fetch_children("page_123") == [{"type": "heading_1"}]
 
 
 def test_from_env_requires_token(monkeypatch: pytest.MonkeyPatch) -> None:

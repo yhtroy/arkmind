@@ -34,8 +34,32 @@ class _HealthyClient:
         return None
 
     @staticmethod
-    def create_page(title: str, content: str) -> str:
+    def create_page(
+        title: str, content: str, *, book: str | None = None, author: str | None = None
+    ) -> str:
         return "page_001"
+
+    @staticmethod
+    def fetch_page(page_id: str) -> dict[str, object]:
+        return {
+            "id": page_id,
+            "properties": {
+                "Title": {"title": [{"plain_text": "Hello ArkMind v2"}]},
+                "Book": {"rich_text": [{"plain_text": "Smoke Book"}]},
+                "Author": {"rich_text": [{"plain_text": "Smoke Author"}]},
+                "Status": {"select": {"name": "Draft"}},
+                "Word Count": {"number": 9},
+            },
+        }
+
+    @staticmethod
+    def fetch_children(page_id: str) -> list[dict[str, object]]:
+        return [
+            {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "AI Draft"}]}},
+            {"type": "paragraph", "paragraph": {"rich_text": [{"plain_text": "Smoke Test"}]}},
+            {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "Editor Notes"}]}},
+            {"type": "heading_1", "heading_1": {"rich_text": [{"plain_text": "Review"}]}},
+        ]
 
 
 def _patch_from_env(monkeypatch: pytest.MonkeyPatch, client: object) -> None:
@@ -115,6 +139,9 @@ def test_smoke_creates_page_and_prints_id(
     out = capsys.readouterr().out
     assert "OK Created Notion Page" in out
     assert "OK Page ID: page_001" in out
+    assert "OK Properties: Status=Draft Word Count=9" in out
+    assert "OK Body: AI Draft / Editor Notes / Review" in out
+    assert "OK Ready" in out
 
 
 def test_smoke_http_error_reports_body(
@@ -122,7 +149,9 @@ def test_smoke_http_error_reports_body(
 ) -> None:
     class _SchemaMismatchClient(_HealthyClient):
         @staticmethod
-        def create_page(title: str, content: str) -> str:
+        def create_page(
+            title: str, content: str, *, book: str | None = None, author: str | None = None
+        ) -> str:
             raise HTTPError(
                 "url", 400, "Bad Request", {}, io.BytesIO(b'{"message":"schema mismatch"}')
             )
@@ -134,3 +163,24 @@ def test_smoke_http_error_reports_body(
         notion_cli.main()
     assert excinfo.value.code == 1
     assert "ERROR Smoke test failed: HTTP 400" in capsys.readouterr().err
+
+
+def test_smoke_verification_failure_reported(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class _WrongStatusClient(_HealthyClient):
+        @staticmethod
+        def fetch_page(page_id: str) -> dict[str, object]:
+            page = _HealthyClient.fetch_page(page_id)
+            props = page["properties"]
+            assert isinstance(props, dict)
+            props["Status"] = {"select": {"name": "Editing"}}
+            return page
+
+    _patch_from_env(monkeypatch, _WrongStatusClient())
+    monkeypatch.setattr("sys.argv", ["arkmind-notion-check", "--smoke"])
+
+    with pytest.raises(SystemExit) as excinfo:
+        notion_cli.main()
+    assert excinfo.value.code == 1
+    assert "ERROR Smoke verification failed: Status" in capsys.readouterr().err

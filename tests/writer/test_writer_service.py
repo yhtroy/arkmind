@@ -36,10 +36,17 @@ class _RecordingNotion:
 
     def __init__(self, page_id: str = "page_001") -> None:
         self.page_id = page_id
-        self.stored: list[tuple[str, str]] = []
+        self.stored: list[dict[str, object]] = []
 
-    def create_page(self, title: str, content: str) -> str:
-        self.stored.append((title, content))
+    def create_page(
+        self,
+        title: str,
+        content: str,
+        *,
+        book: str | None = None,
+        author: str | None = None,
+    ) -> str:
+        self.stored.append({"title": title, "content": content, "book": book, "author": author})
         return self.page_id
 
 
@@ -81,7 +88,9 @@ def test_write_stores_content_in_notion_and_returns_page_id() -> None:
     # The page id comes back from Notion; content is the model response verbatim,
     # and the title is taken from the document's level-1 heading.
     assert page_id == "page_abc"
-    assert notion.stored == [("假标题", "# 假标题\n\n正文")]
+    assert notion.stored == [
+        {"title": "假标题", "content": "# 假标题\n\n正文", "book": None, "author": None}
+    ]
 
 
 def test_write_passes_instruction_as_prompt_and_context_as_text() -> None:
@@ -97,6 +106,19 @@ def test_write_passes_instruction_as_prompt_and_context_as_text() -> None:
     assert "极不可能却影响巨大的事件" in llm.text
 
 
+def test_write_passes_book_and_author_to_notion() -> None:
+    repo = _repo(_asset("c1", AssetType.CONCEPT, "极不可能却影响巨大的事件"))
+    notion = _RecordingNotion()
+
+    WriterService(llm=_RecordingLLM("# 黑天鹅\n\n正文"), notion=notion).write(
+        [_topic()], repo, book="黑天鹅", author="塔勒布"
+    )
+
+    assert notion.stored == [
+        {"title": "黑天鹅", "content": "# 黑天鹅\n\n正文", "book": "黑天鹅", "author": "塔勒布"}
+    ]
+
+
 def test_write_with_fake_llm_stores_verbatim() -> None:
     repo = _repo(_asset("c1", AssetType.CONCEPT, "极不可能却影响巨大的事件"))
     notion = _RecordingNotion()
@@ -107,7 +129,14 @@ def test_write_with_fake_llm_stores_verbatim() -> None:
     ).write([_topic()], repo)
 
     assert page_id == "page_001"
-    assert notion.stored == [("黑天鹅", "# 黑天鹅\n\n极不可能却影响巨大的事件")]
+    assert notion.stored == [
+        {
+            "title": "黑天鹅",
+            "content": "# 黑天鹅\n\n极不可能却影响巨大的事件",
+            "book": None,
+            "author": None,
+        }
+    ]
 
 
 def test_write_raises_when_markdown_lacks_h1() -> None:
