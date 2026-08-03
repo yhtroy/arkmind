@@ -30,7 +30,7 @@ sources/*/output/
 benchmarks/**/knowledge.json
 benchmarks/**/asset*.json
 
-# M5.5 production£ºÖ»±£Áô notes.md£¨ÈË¹¤±Ê¼Ç£©Èë¿â£»transcript£¨Ô­ÎÄÌáÈ¡£©ÓëÉú³ÉµÄ topic/asset JSON ²»Èë¿â£¨¿ÉÓÉ prepare.py ¸´ÏÖ£©
+# M5.5 productionï¼šåªä¿ç•™ notes.mdï¼ˆäººå·¥ç¬”è®°ï¼‰å…¥åº“ï¼›transcriptï¼ˆåŸæ–‡æå–ï¼‰ä¸ç”Ÿæˆçš„ topic/asset JSON ä¸å…¥åº“ï¼ˆå¯ç”± prepare.py å¤ç°ï¼‰
 production/**/transcript.md
 production/**/topic.json
 production/**/asset.json

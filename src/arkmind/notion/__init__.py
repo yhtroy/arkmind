@@ -5,6 +5,10 @@ generated content. Future capabilities (sync, search, template, database) live
 here as well.
 """
 
-from arkmind.notion.notion_client import MissingNotionConfigError, NotionClient
+from arkmind.notion.notion_client import (
+    MissingNotionConfigError,
+    NotionClient,
+    NotionEnvironmentError,
+)
 
-__all__ = ["MissingNotionConfigError", "NotionClient"]
+__all__ = ["MissingNotionConfigError", "NotionClient", "NotionEnvironmentError"]

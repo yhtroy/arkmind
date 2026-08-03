@@ -7,11 +7,13 @@ are exercised directly; the network ``create_page`` call is stubbed via
 
 from __future__ import annotations
 
-from typing import Self
+import io
+from typing import NoReturn, Self
+from urllib.error import HTTPError, URLError
 
 import pytest
 
-from arkmind.notion import MissingNotionConfigError, NotionClient
+from arkmind.notion import MissingNotionConfigError, NotionClient, NotionEnvironmentError
 
 
 class _FakeResponse:
@@ -90,3 +92,68 @@ def test_from_env_builds_client(monkeypatch: pytest.MonkeyPatch) -> None:
     client = NotionClient.from_env()
 
     assert client.build_page("T", "C")["parent"] == {"database_id": "db123"}
+
+
+def test_verify_token_ok(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda _request: _FakeResponse(b"{}"))
+
+    client.verify_token()  # no exception
+
+
+def test_verify_token_rejects_invalid_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _raise_401(_request: object) -> NoReturn:
+        raise HTTPError("url", 401, "Unauthorized", {}, io.BytesIO(b"{}"))
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_401)
+
+    with pytest.raises(NotionEnvironmentError, match="Token is invalid or revoked"):
+        client.verify_token()
+
+
+def test_verify_token_network_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _raise_net(_request: object) -> NoReturn:
+        raise URLError("connection refused")
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_net)
+
+    with pytest.raises(NotionEnvironmentError, match="Network error"):
+        client.verify_token()
+
+
+def test_verify_database_ok(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda _request: _FakeResponse(b"{}"))
+
+    client.verify_database()  # no exception
+
+
+def test_verify_database_not_shared(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _raise_404(_request: object) -> NoReturn:
+        raise HTTPError("url", 404, "Not Found", {}, io.BytesIO(b"{}"))
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_404)
+
+    with pytest.raises(NotionEnvironmentError, match="Database not found") as excinfo:
+        client.verify_database()
+    assert "Share → invite" in str(excinfo.value)
+
+
+def test_verify_database_denied(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = NotionClient(token="secret", database_id="db123")
+
+    def _raise_403(_request: object) -> NoReturn:
+        raise HTTPError("url", 403, "Forbidden", {}, io.BytesIO(b"{}"))
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_403)
+
+    with pytest.raises(NotionEnvironmentError, match="Access denied"):
+        client.verify_database()

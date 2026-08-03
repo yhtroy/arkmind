@@ -30,11 +30,14 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.error
 import urllib.request
 
 _TOKEN_ENV = "ARKMIND_NOTION_TOKEN"
 _DATABASE_ENV = "ARKMIND_NOTION_DATABASE_ID"
 _API_URL = "https://api.notion.com/v1/pages"
+_ME_URL = "https://api.notion.com/v1/users/me"
+_DATABASES_URL = "https://api.notion.com/v1/databases/{id}"
 _NOTION_VERSION = "2022-06-28"
 _RICH_TEXT_LIMIT = 2000
 
@@ -45,6 +48,10 @@ class MissingNotionConfigError(RuntimeError):
     def __init__(self, variable: str) -> None:
         super().__init__(f"{variable} is not set")
         self.variable = variable
+
+
+class NotionEnvironmentError(RuntimeError):
+    """Raised when an environment check fails; the message is user-actionable."""
 
 
 class NotionClient:
@@ -64,6 +71,52 @@ class NotionClient:
         if not database_id:
             raise MissingNotionConfigError(_DATABASE_ENV)
         return cls(token=token, database_id=database_id)
+
+    def verify_token(self) -> None:
+        """Check that the token authenticates; raise :class:`NotionEnvironmentError` otherwise."""
+        request = urllib.request.Request(_ME_URL, method="GET")
+        request.add_header("Authorization", f"Bearer {self._token}")
+        request.add_header("Notion-Version", _NOTION_VERSION)
+        try:
+            with urllib.request.urlopen(request):
+                pass
+        except urllib.error.HTTPError as error:
+            if error.code in (401, 403):
+                raise NotionEnvironmentError(
+                    "Token is invalid or revoked — create a new secret at "
+                    "https://www.notion.so/my-integrations"
+                ) from error
+            raise NotionEnvironmentError(f"Notion API error {error.code}") from error
+        except urllib.error.URLError as error:
+            raise NotionEnvironmentError(
+                f"Network error while reaching Notion: {error.reason}"
+            ) from error
+
+    def verify_database(self) -> None:
+        """Check that the database is reachable and shared; raise :class:`NotionEnvironmentError` otherwise."""
+        request = urllib.request.Request(_DATABASES_URL.format(id=self._database_id), method="GET")
+        request.add_header("Authorization", f"Bearer {self._token}")
+        request.add_header("Notion-Version", _NOTION_VERSION)
+        try:
+            with urllib.request.urlopen(request):
+                pass
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                raise NotionEnvironmentError(
+                    "Database not found — check ARKMIND_NOTION_DATABASE_ID and share the "
+                    "database with the integration (Database → Share → invite the "
+                    "integration)"
+                ) from error
+            if error.code == 403:
+                raise NotionEnvironmentError(
+                    "Access denied — share the database with the integration "
+                    "(Database → Share → invite the integration)"
+                ) from error
+            raise NotionEnvironmentError(f"Notion API error {error.code}") from error
+        except urllib.error.URLError as error:
+            raise NotionEnvironmentError(
+                f"Network error while reaching Notion: {error.reason}"
+            ) from error
 
     def create_page(self, title: str, content: str) -> str:
         """Create a page from ``title`` / ``content`` and return the page id."""
