@@ -17,8 +17,8 @@
 
 | 日期 | 书名 | 成功入 Notion | 需人工大改 | 人工修改时间 | 是否发布 | 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-07-27 | 《黑天鹅》 | ✅ | 待评估 | 待填 | 待填 | 第一篇基准样本；笔记来源：历史资产转换（M3 v16）非人工；Page ID 3b1353d2-d441-817b-89b1-c3be4bf37ba1 |
-| 2026-07-27 | 《浪潮之巅》 | ✅ | 待评估 | 待填 | 待填 | 第二篇；笔记来源：PDF 原文提炼（非历史资产）；《思考快与慢》PDF 无文本层改跑本篇；Page ID 3b1353d2-d441-81f9-a9a9-da7ba5e7071e |
+| 2026-07-27 | 《黑天鹅》 | ✅ | 待评估 | 待填 | 待填 | 第一篇基准样本；笔记来源：历史资产转换（M3 v16）非人工；v2 重建（Editorial Database v2：Content 字段删除致 V1 正文丢失，v2 链路重建，正文入 Page Body，Book/Author 落库）；Page ID 3b1353d2-d441-814e-b109-c97c3e4fb23c |
+| 2026-07-27 | 《浪潮之巅》 | ✅ | 待评估 | 待填 | 待填 | 第二篇；笔记来源：PDF 原文提炼（非历史资产）；《思考快与慢》PDF 无文本层改跑本篇；v2 重建（同左）；Page ID 3b1353d2-d441-8181-bbc7-c8518cb45916 |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
@@ -43,8 +43,7 @@
 > Observations collected during M5.5. No implementation until the validation
 > is over and Writer Contract v2 is frozen.
 
-- [ ] **BACKLOG-001：Notion Page Body vs Content Property**（来源：M5.5 第一篇《黑天鹅》2026-07-27）
+- [x] **BACKLOG-001：Notion Page Body vs Content Property**（来源：M5.5 第一篇《黑天鹅》2026-07-27）
       观察：正文存储在 Content Rich Text 属性，阅读体验一般，无法充分利用 Notion Block 编辑能力。
-      当前决定：保持冻结设计，继续收集 10 篇真实使用反馈。
-      进入：Writer Contract v2 候选。预判（CEO）：若多篇后编辑体验仍差，v2 第一条 = 正文进 Page Body，Properties 只保存元数据。
+      结论：2026-07-27 CEO 裁定实施 Editorial Database v2——正文进 Page Body（AI Draft / Editor Notes / Review 模板），Content 字段删除，Properties 只保留 Title/Book/Author/Status/Word Count。已实施（commit ef199a3）。
 - [ ] asset-full.json（219 条历史产物）content 全部为 "None"，不可用——历史数据问题非 M5 Bug，M5.5 不修（Review ⑥，2026-07-27）
