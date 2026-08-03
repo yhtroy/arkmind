@@ -42,5 +42,8 @@
 > Observations collected during M5.5. No implementation until the validation
 > is over and Writer Contract v2 is frozen.
 
-- [ ] （记录：观察到的问题 / 想加的字段 / 想改的 Prompt，一行一条）
+- [ ] **BACKLOG-001：Notion Page Body vs Content Property**（来源：M5.5 第一篇《黑天鹅》2026-07-27）
+      观察：正文存储在 Content Rich Text 属性，阅读体验一般，无法充分利用 Notion Block 编辑能力。
+      当前决定：保持冻结设计，继续收集 10 篇真实使用反馈。
+      进入：Writer Contract v2 候选。预判（CEO）：若多篇后编辑体验仍差，v2 第一条 = 正文进 Page Body，Properties 只保存元数据。
 - [ ] asset-full.json（219 条历史产物）content 全部为 "None"，不可用——历史数据问题非 M5 Bug，M5.5 不修（Review ⑥，2026-07-27）
