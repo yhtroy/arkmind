@@ -9,20 +9,24 @@
 > errors, cannot-run and production-blocking issues get fixed. Everything else
 > (prompt quality, fluency, titles, extra Notion fields, ...) goes to the
 > Backlog below and stays untouched until the validation is over.
+>
+> Source discipline: **transcript.md is never edited** (no deletion, polish or
+> re-layout — the source stays traceable). Only notes.md may be edited.
 
 ## Log
 
-| 日期 | 书名 | 成功入 Notion | 需人工大改 | 备注 |
-| --- | --- | --- | --- | --- |
-| 2026-07-27 | 《示例》 | ✅ | ✅ | 选题覆盖：偏商业 |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
+| 日期 | 书名 | 成功入 Notion | 需人工大改 | 人工修改时间 | 是否发布 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-27 | 《示例》 | ✅ | ✅ | 30 分钟 | ❌ | 选题覆盖：偏商业 |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
 
 ## Coverage Checklist (10 篇选题覆盖)
 
@@ -39,3 +43,4 @@
 > is over and Writer Contract v2 is frozen.
 
 - [ ] （记录：观察到的问题 / 想加的字段 / 想改的 Prompt，一行一条）
+- [ ] asset-full.json（219 条历史产物）content 全部为 "None"，不可用——历史数据问题非 M5 Bug，M5.5 不修（Review ⑥，2026-07-27）

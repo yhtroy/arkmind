@@ -1,5 +1,10 @@
 """production/prepare.py — M5.5 production-input converter (small utility).
 
+TODO: Temporary compatibility tool. Remove after Writer Contract v2
+(notes.md is expected to feed the Writer directly). Topic/Asset are internal
+knowledge models, not production models — do not extend this converter into a
+long-term pipeline.
+
 Turns one book's raw-material directory into the Writer's JSON inputs::
 
     production/<book>/
