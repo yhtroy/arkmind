@@ -52,10 +52,10 @@ def test_check_reports_ready(
     notion_cli.main()
 
     out = capsys.readouterr().out
-    assert "✓ Token OK" in out
-    assert "✓ Database OK" in out
-    assert "✓ Permission OK" in out
-    assert "✓ Ready" in out
+    assert "OK Token" in out
+    assert "OK Database" in out
+    assert "OK Permission" in out
+    assert "OK Ready" in out
 
 
 def test_check_missing_env_fails(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -85,7 +85,7 @@ def test_check_bad_token_fails(
     with pytest.raises(SystemExit) as excinfo:
         notion_cli.main()
     assert excinfo.value.code == 1
-    assert "✗ Token is invalid" in capsys.readouterr().err
+    assert "ERROR Token is invalid" in capsys.readouterr().err
 
 
 def test_check_database_not_shared_fails(
@@ -101,7 +101,7 @@ def test_check_database_not_shared_fails(
     with pytest.raises(SystemExit) as excinfo:
         notion_cli.main()
     assert excinfo.value.code == 1
-    assert "✗ Database not found" in capsys.readouterr().err
+    assert "ERROR Database not found" in capsys.readouterr().err
 
 
 def test_smoke_creates_page_and_prints_id(
@@ -113,8 +113,8 @@ def test_smoke_creates_page_and_prints_id(
     notion_cli.main()
 
     out = capsys.readouterr().out
-    assert "✓ Created Notion Page" in out
-    assert "✓ Page ID: page_001" in out
+    assert "OK Created Notion Page" in out
+    assert "OK Page ID: page_001" in out
 
 
 def test_smoke_http_error_reports_body(
@@ -133,4 +133,4 @@ def test_smoke_http_error_reports_body(
     with pytest.raises(SystemExit) as excinfo:
         notion_cli.main()
     assert excinfo.value.code == 1
-    assert "✗ Smoke test failed: HTTP 400" in capsys.readouterr().err
+    assert "ERROR Smoke test failed: HTTP 400" in capsys.readouterr().err

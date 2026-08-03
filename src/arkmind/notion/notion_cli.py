@@ -8,10 +8,13 @@ Checks the Notion environment before the Writer ever runs: token validity,
 database reachability/sharing, and (with ``--smoke``) a real ``create_page``
 write test. Prints friendly per-step status instead of raw HTTP errors:
 
-    ✓ Token OK
-    ✓ Database OK (shared, read/write)
-    ✓ Permission OK
-    ✓ Ready
+    OK Token
+    OK Database (shared, read/write)
+    OK Permission
+    OK Ready
+
+Output is plain ASCII on purpose: the Windows console defaults to the GBK
+codepage and would crash on non-ASCII glyphs (U+2713 etc.).
 
 Credentials come from ``ARKMIND_NOTION_TOKEN`` / ``ARKMIND_NOTION_DATABASE_ID``.
 No business logic lives here; the checks are delegated to
@@ -21,6 +24,7 @@ No business logic lives here; the checks are delegated to
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 import urllib.error
 from typing import NoReturn
@@ -29,11 +33,16 @@ from arkmind.notion import MissingNotionConfigError, NotionClient, NotionEnviron
 
 
 def _fail(message: str) -> NoReturn:
-    print(f"✗ {message}", file=sys.stderr)
+    print(f"ERROR {message}", file=sys.stderr)
     raise SystemExit(1)
 
 
 def main() -> None:
+    # Windows console defaults to GBK; never crash on non-encodable output.
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(errors="replace")
+
     parser = argparse.ArgumentParser(prog="arkmind-notion-check")
     parser.add_argument(
         "--smoke",
@@ -51,17 +60,17 @@ def main() -> None:
         client.verify_token()
     except NotionEnvironmentError as error:
         _fail(str(error))
-    print("✓ Token OK")
+    print("OK Token")
 
     try:
         client.verify_database()
     except NotionEnvironmentError as error:
         _fail(str(error))
-    print("✓ Database OK (shared, read/write)")
-    print("✓ Permission OK")
+    print("OK Database (shared, read/write)")
+    print("OK Permission")
 
     if args.smoke:
-        print('→ Smoke test: creating page "Hello ArkMind" ...')
+        print('Smoke test: creating page "Hello ArkMind" ...')
         try:
             page_id = client.create_page(title="Hello ArkMind", content="Smoke Test")
         except urllib.error.HTTPError as error:
@@ -69,10 +78,10 @@ def main() -> None:
             _fail(f"Smoke test failed: HTTP {error.code} — {body}")
         except NotionEnvironmentError as error:
             _fail(f"Smoke test failed: {error}")
-        print("✓ Created Notion Page")
-        print(f"✓ Page ID: {page_id}")
+        print("OK Created Notion Page")
+        print(f"OK Page ID: {page_id}")
 
-    print("✓ Ready")
+    print("OK Ready")
 
 
 if __name__ == "__main__":
